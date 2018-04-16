@@ -1624,6 +1624,16 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
         tlvIdx++;
     }
 
+    /* Send  radarCube */
+    {
+      /* numRangeBins * numDopplerBins * numTxAntennas * numRxAntennas * 4 */
+      size_t radarCubeSize = obj->numRangeBins * obj->numDopplerBins * obj->numTxAntennas * obj->numRxAntennas * 4;
+      size_t transmitSize = radarCubeSize;
+      UART_writePolling(uartHandle,
+			(uint8_t*)obj->radarCube,
+			transmitSize);
+    }
+
     /* Send padding bytes */
     numPaddingBytes = MMWDEMO_OUTPUT_MSG_SEGMENT_LEN - (packetLen & (MMWDEMO_OUTPUT_MSG_SEGMENT_LEN-1));
     if (numPaddingBytes<MMWDEMO_OUTPUT_MSG_SEGMENT_LEN)
