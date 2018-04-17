@@ -202,66 +202,6 @@ void MmwDemo_azimHeapMapDopplerCompensation
     uint32_t numRangeBins
 );
 
-/*!
- *  @brief  Function is executed after the HWA CFAR algorithm. It reduces the
- *  number of detected objects performed by CFAR algorithm. It selects only
- *  those objects with peaks greater than its neighbors.
- *
- *
- *  @param[in]  numDetectedObjects Number of detected objects by HWA CFAR algorithm
- *
- *  @param[in]  detBuffptr          Pointer to range-doppler matrix which was
- *                                  used by CFAR alogorithm to generate detected
- *                                  objects, size number of range bins times number
- *                                  of doppler bins.
- *
- *  @param[in]  cfarObjptr          Pointer to the output structure generated
- *                                  by CFAR algorithm, contains list of detected objects.
- *
- *  @param[in]  fftBuffptr          Pointer to 2nd D FFT buffer with complex symbols. The size of buffer is 
- *                                  numRangeBins * numDopplerBins * (numVirtualAntAzim + numVirtualAntElev).
- *
- *  @param[out]  objOut             Output pointer to the structure with with selected objects. The function 
- *                                  fills range and doppler index of the object.
- *
- *  @param[out]  peakGrpAzimOut     Output pointer (local memory of HWA) filled with antenna symbols of selected 
- *                                  objects for azimuth calculation.
- *
- *  @param[out]  peakGrpElevOut     Output pointer (local memory of HWA) filled with antenna symbols of selected 
- *                                  objects for elevation calculation.
- *
- *  @param[in]  numVirtualAntAzim   Number of virtual Rx antennas
- *
- *  @param[in]  numVirtualAntElev   Number of virtual Rx antennas
- *
- *  @param[in]  numDopplerBins      Number of Doppler bins
- *
- *  @param[in]  minRangeIdx         Minimum range index to be exported
- *
- *  @param[in]  maxRangeIdx         Maximum range index to be exported
- *
- *
- *  @param[in]  groupInDopplerDirection    peak grouping in Doppler direction 0-disabled, 1-enabled
- *
- *  @param[in]  groupInRangeDirection      peak grouping in Range direction 0-disabled, 1-enabled
- *
- *  @return numObjOut Number of selected objects
- *
- */
-extern uint32_t MmwDemo_peakGrouping(uint32_t numDetectedObjects,
-                                uint16_t* detBuffptr,
-                                cfarDetOutput_t*  cfarObjptr,
-                                uint32_t* fftBuffptr,
-                                MmwDemo_detectedObj *objOut,
-                                uint32_t *peakGrpAzimOut,
-                                uint32_t *peakGrpElevOut,
-                                uint32_t numVirtualAntAzim,
-                                uint32_t numVirtualAntElev,
-                                uint32_t numDopplerBins,
-                                uint32_t minRangeIdx,
-                                uint32_t maxRangeIdx,
-                                uint32_t groupInDopplerDirection,
-                                uint32_t groupInRangeDirection);
 
 /*!
  *  @brief  Function finds for each detected object the peak in the azimut FFT

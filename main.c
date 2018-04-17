@@ -1245,7 +1245,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 
         /* Postprocessing/angle estimation */
         dataPathObj->numHwaCfarDetections = numDetectedObjects;
-        MmwDemo_processAngle(dataPathObj);
 
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);

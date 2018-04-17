@@ -500,16 +500,11 @@ void MmwDemo_dataPathConfigCommon(MmwDemo_DataPathObj *obj);
 void MmwDemo_dcRangeSignatureCompensation(MmwDemo_DataPathObj *obj);
 void MmwDemo_process2D(MmwDemo_DataPathObj *obj);
 void MmwDemo_processCfar(MmwDemo_DataPathObj *obj, uint16_t *numDetectedObjects);
-void MmwDemo_processAngle(MmwDemo_DataPathObj *obj);
 
 
 void MmwDemo_config1D_HWA(MmwDemo_DataPathObj *obj);
 void MmwDemo_dataPathTrigger1D(MmwDemo_DataPathObj *obj);
 void MmwDemo_dataPathWait1D(MmwDemo_DataPathObj *obj);
-
-void MmwDemo_configAngleEstimation_HWA(MmwDemo_DataPathObj *obj, uint32_t numObjOut);
-void MmwDemo_dataPathTriggerAngleEstimation(MmwDemo_DataPathObj *obj);
-void MmwDemo_dataPathWaitAngleEstimation(MmwDemo_DataPathObj *obj);
 
 void MmwDemo_edmaClose(MmwDemo_DataPathObj *obj);
 void MmwDemo_dataPathDeleteSemaphore(MmwDemo_DataPathObj *obj);
