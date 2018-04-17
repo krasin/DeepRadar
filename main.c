@@ -149,10 +149,6 @@ void MmwDemo_dataPathConfig(void);
 void MmwDemo_dataPathOpen(MmwDemo_DataPathObj *obj);
 void MmwDemo_dataPathStop (MmwDemo_DataPathObj *obj);
 
-void MmwDemo_getAngleBinsAtPeak(uint32_t numObj,
-                                     MmwDemo_detectedObj *objOut,
-                                     uint16_t *pAngleBins);
-
 void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
                                     MmwDemo_DataPathObj *obj);
 
