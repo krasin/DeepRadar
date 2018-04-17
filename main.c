@@ -740,7 +740,6 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
             dataPathObj->numChirpsPerFrame = frameTotalChirps *
                                               gMmwMCB.cfg.ctrlCfg.u.frameCfg.frameCfg.numLoops;
 
-            dataPathObj->numAngleBins = MMW_NUM_ANGLE_BINS;
             dataPathObj->numDopplerBins = dataPathObj->numChirpsPerFrame/dataPathObj->numTxAntennas;
             dataPathObj->numRangeBinsPerTransfer = MMW_NUM_RANGE_BINS_PER_TRANSFER;
             dataPathObj->rangeResolution = MMWDEMO_SPEED_OF_LIGHT_IN_METERS_PER_SEC * profileCfg.digOutSampleRate * 1e3 /

@@ -133,13 +133,6 @@ extern "C" {
 #define MMW_EDMA_2DFFT_SINGLERBIN_SHADOW_LINK_CH_ID          (EDMA_SHADOW_LNK_PARAM_BASE_ID + 15)
 #define MMW_EDMA_2DFFT_SINGLERBIN_SHADOW_LINK_CH_ID2          (EDMA_SHADOW_LNK_PARAM_BASE_ID + 16)
 
-/* ANGLE */
-#define MMW_HWA_ANGLE_AZIM_INP              (&gMmwHwaMemBuf[0])
-#define MMW_HWA_ANGLE_ELEV_INP              (&gMmwHwaMemBuf[1])
-#define MMW_HWA_ANGLE_AZIM_ABS_OUT          (&gMmwHwaMemBuf[2])
-#define MMW_HWA_ANGLE_ELEV_CPLX_OUT         (&gMmwHwaMemBuf[3])
-#define MMW_HWA_ANGLE_AZIM_CPLX_OUT         (&gMmwHwaMemBuf[1])
-
 #define MMW_HWA_START_POS_PARAMSETS_1D       0
 #define MMW_HWA_START_POS_PARAMSETS_2D      (MMW_HWA_START_POS_PARAMSETS_1D + HWAUTIL_NUM_PARAM_SETS_1D)
 
@@ -154,9 +147,6 @@ extern "C" {
 #define MMW_WIN_RECT     2
 
 #define ONE_Q17 (1U << 17)
-
-/*! @brief Azimuth FFT size */
-#define MMW_NUM_ANGLE_BINS 64
 
 /* number of range gates processed by the HWACC per iteration (during 2D FFT processing) */
 #define MMW_NUM_RANGE_BINS_PER_TRANSFER 2
@@ -350,9 +340,6 @@ typedef struct MmwDemo_DataPathObj_t
     /*! @brief number of chirps per frame */
     uint32_t numChirpsPerFrame;
 
-    /*! @brief number of angle bins */
-    uint32_t numAngleBins;
-
     /*! @brief number of doppler bins */
     uint32_t numDopplerBins;
 
@@ -367,12 +354,6 @@ typedef struct MmwDemo_DataPathObj_t
 
 	/*! @brief Data path mode */
 	DataPath_mode    dataPathMode;
-
-	/*! @brief Detected objects azimuth index for debugging */
-	uint8_t detObj2dAzimIdx[MMW_MAX_OBJ_OUT];
-
-	/*! @brief Detected object elevation angle for debugging */
-    float detObjElevationAngle[MMW_MAX_ELEV_OBJ_DEBUG];
 
     /*! @brief  Used for checking that inter frame processing finshed on time */
     int32_t interFrameProcToken;

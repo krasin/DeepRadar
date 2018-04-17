@@ -44,7 +44,6 @@
 
 #define HWAUTIL_NUM_PARAM_SETS_1D 4
 #define HWAUTIL_NUM_PARAM_SETS_2D 8
-#define HWAUTIL_NUM_PARAM_SETS_ANGLE 1
 #define HWAUTIL_NUM_PARAM_SETS_2DDET_SINGLEBIN 1
 
 
@@ -201,68 +200,6 @@ void HWAutil_configDopplerFFTSingleRangeBin(HWA_Handle handle,
                                 uint16_t hwaMemAzimDest);
 
 
-/** @brief Configures ParameterSet for azimuth-FFT processing
- *
- *   @param[in] handle              HWA driver handle
- *
- *   @param[in] paramSetStartIdx    HWA parameter set start index
- *
- *   @param[in] numVirtualAnt       number of Virtual antennas (num_tx x num_rx)
- *
- *   @param[in] fftOutSize          Azimuth FFT length
- *
- *   @param[in] numIter             number of vectors on which angle-FFT has to be computed
- *
- *   @param[in] hwaSourceBufOffset  HWA memory offset with input data
- *
- *   @param[in] hwaDestBufOffset    HWA memory offset with computed angle-FFTs
- *
- *
-*/
-void HWAutil_configAngleEstAzimuth(HWA_Handle handle,
-                                     uint32_t  paramSetStartIdx,
-                                     uint32_t numVirtualAnt,
-                                     uint32_t fftOutSize,
-                                     uint32_t numIter,
-                                     uint16_t hwaSourceBufOffset,
-                                     uint16_t hwaDestBufOffset);
-
-/** @brief Configures ParameterSet for azimuth/elevation-FFT processing
- *
- *   @param[in] handle              HWA driver handle
- *
- *   @param[in] paramSetStartIdx    HWA parameter set start index
- *
- *   @param[in] numVirtualAntAzim       number of Azimuth Virtual antennas (num_azimuth_tx x num_rx)
- *
- *   @param[in] numVirtualAntElev       number of Elevation Virtual antennas (num_elevation_tx x num_rx)
- *
- *   @param[in] fftOutSize          Azimuth FFT length
- *
- *   @param[in] numIter             number of vectors on which angle-FFT has to be computed
- *
- *   @param[in] hwaSourceAzimBufOffset  HWA memory offset with azimuth input data
- *
- *   @param[in] hwaSourceElevBufOffset  HWA memory offset with elevation input data
- *
- *   @param[in] hwaDestAzimAbsBufOffset   HWA memory offset with computed azimuth-FFTs (log magnitude values)
- *
- *   @param[in] hwaDestAzimCplxBufOffset   HWA memory offset with computed azimuth-FFTs (complex values)
- *
- *   @param[in] hwaDestElevCplxBufOffset   HWA memory offset with computed elevation-FFTs (complex values)
- *
-*/
-void HWAutil_configAngleEstAzimuthElevation(HWA_Handle handle,
-                                     uint32_t  paramSetStartIdx,
-                                     uint32_t numVirtualAntAzim,
-                                     uint32_t numVirtualAntElev,
-                                     uint32_t fftOutSize,
-                                     uint32_t numIter,
-                                     uint16_t hwaSourceAzimBufOffset,
-                                     uint32_t hwaSourceElevBufOffset,
-                                     uint16_t hwaDestAzimAbsBufOffset,
-                                     uint16_t hwaDestAzimCplxBufOffset,
-                                     uint16_t hwaDestElevCplxBufOffset);
 
 /**@}*/
 #ifdef __cplusplus
