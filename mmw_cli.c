@@ -129,7 +129,7 @@ static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[])
     memset ((void *)&guiMonSel, 0, sizeof(MmwDemo_GuiMonSel));
 
     /* Populate configuration: */
-    guiMonSel.detectedObjects           = atoi (argv[1]);
+    guiMonSel.detectedObjects           = 0;
     guiMonSel.logMagRange               = atoi (argv[2]);
     guiMonSel.noiseProfile              = 0;
     guiMonSel.rangeAzimuthHeatMap       = atoi (argv[4]);

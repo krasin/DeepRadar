@@ -766,9 +766,6 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
 *    1. Header (size = 32bytes), including "Magic word", (size = 8 bytes)
 *       and icluding the number of TLV items
 *    TLV Items:
-*    2. If detectedObjects flag is set, pbjOut structure containing range,
-*       Doppler, and X,Y,Z location for detected objects,
-*       size = sizeof(objOut_t) * number of detected objects
 *    3. If logMagRange flag is set,  rangeProfile,
 *       size = number of range bins * sizeof(uint16_t)
 *    7. If rangeAzimuthHeatMap flag is set, the zero Doppler column of the
@@ -804,21 +801,13 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
     header.magicWord[1] = 0x0304;
     header.magicWord[2] = 0x0506;
     header.magicWord[3] = 0x0708;
-    header.numDetectedObj = obj->numObjOut;
+    header.numDetectedObj = 0;
     header.version =    MMWAVE_SDK_VERSION_BUILD |   //DEBUG_VERSION
                         (MMWAVE_SDK_VERSION_BUGFIX << 8) |
                         (MMWAVE_SDK_VERSION_MINOR << 16) |
                         (MMWAVE_SDK_VERSION_MAJOR << 24);
 
     packetLen = sizeof(MmwDemo_output_message_header);
-    if (pGuiMonSel->detectedObjects && (obj->numObjOut > 0))
-    {
-        tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_DETECTED_POINTS;
-        tl[tlvIdx].length = sizeof(MmwDemo_detectedObj) * obj->numObjOut +
-                            sizeof(MmwDemo_output_message_dataObjDescr);
-        packetLen += sizeof(MmwDemo_output_message_tl) + tl[tlvIdx].length;
-        tlvIdx++;
-    }
     if (pGuiMonSel->logMagRange)
     {
         tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_RANGE_PROFILE;
@@ -854,24 +843,6 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
                        sizeof(MmwDemo_output_message_header));
 
     tlvIdx = 0;
-    /* Send detected Objects */
-    if ((pGuiMonSel->detectedObjects == 1) && (obj->numObjOut > 0))
-    {
-        MmwDemo_output_message_dataObjDescr descr;
-
-        UART_writePolling (uartHandle,
-                           (uint8_t*)&tl[tlvIdx],
-                           sizeof(MmwDemo_output_message_tl));
-        /* Send objects descriptor */
-        descr.numDetetedObj = (uint16_t) obj->numObjOut;
-        descr.xyzQFormat = (uint16_t) obj->xyzOutputQFormat;
-        UART_writePolling (uartHandle, (uint8_t*)&descr, sizeof(MmwDemo_output_message_dataObjDescr));
-
-        /*Send array of objects */
-        UART_writePolling (uartHandle, (uint8_t*)obj->objOut, sizeof(MmwDemo_detectedObj) * obj->numObjOut);
-        tlvIdx++;
-    }
-
     /* Send Range profile */
     if (pGuiMonSel->logMagRange)
     {
