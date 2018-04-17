@@ -417,7 +417,6 @@ void MmwDemo_dataPathObjInit(MmwDemo_DataPathObj *obj,
 void MmwDemo_dataPathCfgBuffers(MmwDemo_DataPathObj *obj, MmwDemoMemPool_t *pool);
 
 void MmwDemo_dataPathConfigCommon(MmwDemo_DataPathObj *obj);
-void MmwDemo_dcRangeSignatureCompensation(MmwDemo_DataPathObj *obj);
 void MmwDemo_process2D(MmwDemo_DataPathObj *obj);
 
 

@@ -1188,19 +1188,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 
         Load_update();
 
-        if(dataPathObj->cliCfg->calibDcRangeSigCfg.enabled)
-        {
-             if (dataPathObj->cliCfg->calibDcRangeSigCfg.numAvgChirps <  dataPathObj->numDopplerBins)
-             {
-                 dataPathObj->cliCfg->calibDcRangeSigCfg.enabled = 0;
-                 dataPathObj->dcRangeForcedDisableCntr++;
-             }
-             else
-             {
-                 MmwDemo_dcRangeSignatureCompensation(dataPathObj);
-             }
-        }
-
         MmwDemo_process2D(dataPathObj);
         /* 2nd Dimension FFT done! */
 

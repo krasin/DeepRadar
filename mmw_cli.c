@@ -86,7 +86,6 @@ static int32_t MmwDemo_CLISensorStop (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIPeakGroupingCfg (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIMultiObjBeamForming (int32_t argc, char* argv[]);
-static int32_t MmwDemo_CLICalibDcRangeSig (int32_t argc, char* argv[]);
 
 /**************************************************************************
  *************************** Extern Definitions ***************************
@@ -229,68 +228,6 @@ static int32_t MmwDemo_CLIMultiObjBeamForming (int32_t argc, char* argv[])
     return 0;
 }
 
-
-/**
- *  @b Description
- *  @n
- *      This is the CLI Handler for DC range calibration
- *
- *  @param[in] argc
- *      Number of arguments
- *  @param[in] argv
- *      Arguments
- *
- *  @retval
- *      Success -   0
- *  @retval
- *      Error   -   <0
- */
-static int32_t MmwDemo_CLICalibDcRangeSig (int32_t argc, char* argv[])
-{
-    MmwDemo_CalibDcRangeSigCfg cfg;
-    uint32_t log2NumAvgChirps;
-
-    /* Sanity Check: Minimum argument check */
-    if (argc != 5)
-    {
-        CLI_write ("Error: Invalid usage of the CLI command\n");
-        return -1;
-    }
-
-    /* Initialize the ADC Output configuration: */
-    memset ((void *)&cfg, 0, sizeof(MmwDemo_CalibDcRangeSigCfg));
-
-    /* Populate configuration: */
-    cfg.enabled          = (uint16_t) atoi (argv[1]);
-    cfg.negativeBinIdx   = (int16_t)  atoi (argv[2]);
-    cfg.positiveBinIdx   = (int16_t)  atoi (argv[3]);
-    cfg.numAvgChirps     = (uint16_t)  atoi (argv[4]);
-
-    if (cfg.negativeBinIdx > 0)
-    {
-        CLI_write ("Error: Invalid negative bin index\n");
-        return -1;
-    }
-    if ((cfg.positiveBinIdx - cfg.negativeBinIdx + 1) > DC_RANGE_SIGNATURE_COMP_MAX_BIN_SIZE)
-    {
-        CLI_write ("Error: Number of bins exceeds the limit\n");
-        return -1;
-    }
-    log2NumAvgChirps = (uint32_t) log2Approx (cfg.numAvgChirps);
-    if (cfg.numAvgChirps != (1 << log2NumAvgChirps))
-    {
-        CLI_write ("Error: Number of averaged chirps is not power of two\n");
-        return -1;
-    }
-
-    /* Save Configuration to use later */
-    memcpy((void *)&gMmwMCB.dataPathObj.cliCfg->calibDcRangeSigCfg, (void *)&cfg,
-        sizeof(MmwDemo_CalibDcRangeSigCfg));
-    gMmwMCB.dataPathObj.dcRangeSigCalibCntr = 0;
-    gMmwMCB.dataPathObj.log2NumAvgChirps = log2NumAvgChirps;
-
-    return 0;
-}
 
 /**
  *  @b Description
@@ -591,15 +528,6 @@ void MmwDemo_CLIInit (void)
     cliCfg.tableEntry[cnt].helpString     = NULL;
 #endif
     cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLIMultiObjBeamForming;
-    cnt++;
-
-    cliCfg.tableEntry[cnt].cmd            = "calibDcRangeSig";
-#if 0
-    cliCfg.tableEntry[cnt].helpString     = "<enabled> <negativeBinIdx> <positiveBinIdx> <numAvgFrames>";
-#else
-    cliCfg.tableEntry[cnt].helpString     = NULL;
-#endif
-    cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLICalibDcRangeSig;
     cnt++;
 
     cliCfg.tableEntry[cnt].cmd            = "adcbufCfg";
