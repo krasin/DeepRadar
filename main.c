@@ -1397,21 +1397,6 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
     return foundValidProfile;
 }
 
-void MmwDemo_measurementResultOutput(MmwDemo_DataPathObj *obj)
-{
-    /* Send the received DSS calibration info through CLI */
-    CLI_write ("compRangeBiasAndRxChanPhase");
-    CLI_write (" %.7f", obj->cliCommonCfg->compRxChanCfg.rangeBias);
-    int32_t i;
-    for (i = 0; i < SYS_COMMON_NUM_TX_ANTENNAS*SYS_COMMON_NUM_RX_CHANNEL; i++)
-    {
-        CLI_write (" %.5f", (float) obj->cliCommonCfg->compRxChanCfg.rxChPhaseComp[i].real/32768.);
-        CLI_write (" %.5f", (float) obj->cliCommonCfg->compRxChanCfg.rxChPhaseComp[i].imag/32768.);
-    }
-    CLI_write ("\n");
-
-}
-
 /** @brief Transmits detection data over UART
 *
 *    The following data is transmitted:
@@ -1891,7 +1876,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 {
     MmwDemo_DataPathObj *dataPathObj = &gMmwMCB.dataPathObj;
     uint16_t numDetectedObjects;
-    uint32_t txOrder[SYS_COMMON_NUM_TX_ANTENNAS] = {0,2,1};
     while(1)
     {
         Semaphore_pend(dataPathObj->frameStart_semHandle, BIOS_WAIT_FOREVER);
@@ -1952,25 +1936,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
         MmwDemo_process2D(dataPathObj);
         /* 2nd Dimension FFT done! */
 
-        /* Procedure for range bias measurement and Rx channels gain/phase offset measurement */
-        if(dataPathObj->cliCommonCfg->measureRxChanCfg.enabled)
-        {
-            MmwDemo_rangeBiasRxChPhaseMeasure(
-                    dataPathObj->cliCommonCfg->measureRxChanCfg.targetDistance,
-                    dataPathObj->rangeResolution,
-                    dataPathObj->cliCommonCfg->measureRxChanCfg.searchWinSize,
-                    dataPathObj->rangeDopplerLogMagMatrix,
-                    dataPathObj->numDopplerBins,
-                    dataPathObj->numVirtualAntennas,
-                    dataPathObj->numVirtualAntennas * dataPathObj->numDopplerBins,
-                    dataPathObj->radarCube,
-                    dataPathObj->numRxAntennas,
-                    dataPathObj->numTxAntennas,
-                    txOrder,
-                    &dataPathObj->cliCommonCfg->compRxChanCfg);
-
-        }
-
         MmwDemo_processCfar(dataPathObj, &numDetectedObjects);
         /* CFAR done! */
 
@@ -1981,12 +1946,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
         /* Calculate noise floor. This is for EVM diagnostics only. Assumes a stationary scene */
         dataPathObj->noiseEnergy = calcNoiseFloor (dataPathObj->radarCube, dataPathObj->numDopplerBins,
                 dataPathObj->numRangeBins, dataPathObj->numVirtualAntennas);
-
-        /* Sending range bias and Rx channel phase offset measurements to MSS and from there to CLI */
-         if(dataPathObj->cliCommonCfg->measureRxChanCfg.enabled)
-         {
-             MmwDemo_measurementResultOutput (dataPathObj);
-         }
 
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);

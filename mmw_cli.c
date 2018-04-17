@@ -89,8 +89,6 @@ static int32_t MmwDemo_CLIPeakGroupingCfg (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIMultiObjBeamForming (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLICalibDcRangeSig (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIClutterRemoval (int32_t argc, char* argv[]);
-static int32_t MmwDemo_CLICompRangeBiasAndRxChanPhaseCfg (int32_t argc, char* argv[]);
-static int32_t MmwDemo_CLIMeasureRangeBiasAndRxChanPhaseCfg (int32_t argc, char* argv[]);
 
 /**************************************************************************
  *************************** Extern Definitions ***************************
@@ -480,103 +478,6 @@ static int32_t MmwDemo_CLISensorStop (int32_t argc, char* argv[])
 /**
  *  @b Description
  *  @n
- *      This is the CLI Handler for compensation of range bias and channel phase offsets
- *
- *  @param[in] argc
- *      Number of arguments
- *  @param[in] argv
- *      Arguments
- *
- *  @retval
- *      Success -   0
- *  @retval
- *      Error   -   <0
- */
-static int32_t MmwDemo_CLICompRangeBiasAndRxChanPhaseCfg (int32_t argc, char* argv[])
-{
-    MmwDemo_compRxChannelBiasCfg_t   cfg;
-    int32_t Re, Im;
-    int32_t argInd;
-    int32_t i;
-
-    /* Sanity Check: Minimum argument check */
-    if (argc != (1+1+SYS_COMMON_NUM_TX_ANTENNAS*SYS_COMMON_NUM_RX_CHANNEL*2))
-    {
-        CLI_write ("Error: Invalid usage of the CLI command, argc = %d, actual = %d \n", argc, (1+1+SYS_COMMON_NUM_TX_ANTENNAS*SYS_COMMON_NUM_RX_CHANNEL*2));
-        return -1;
-    }
-
-    /* Initialize configuration: */
-    memset ((void *)&cfg, 0, sizeof(MmwDemo_compRxChannelBiasCfg_t));
-
-    /* Populate configuration: */
-    cfg.rangeBias          = (float) atof (argv[1]);
-
-    argInd = 2;
-    for (i=0; i < SYS_COMMON_NUM_TX_ANTENNAS*SYS_COMMON_NUM_RX_CHANNEL; i++)
-    {
-        Re = (int32_t) (atof (argv[argInd++]) * 32768.);
-        Re = MMWDEMO_SATURATE_HIGH(Re);
-        Re = MMWDEMO_SATURATE_LOW(Re);
-        cfg.rxChPhaseComp[i].real = (int16_t) Re;
-
-        Im = (int32_t) (atof (argv[argInd++]) * 32768.);
-        Im = MMWDEMO_SATURATE_HIGH(Im);
-        Im = MMWDEMO_SATURATE_LOW(Im);
-        cfg.rxChPhaseComp[i].imag = (int16_t) Im;
-
-    }
-    /* Save Configuration to use later */
-    memcpy((void *) &gMmwMCB.cliCommonCfg.compRxChanCfg, &cfg, sizeof(MmwDemo_compRxChannelBiasCfg_t));
-
-    return 0;
-}
-
-/**
- *  @b Description
- *  @n
- *      This is the CLI Handler for measurement configuration of range bias
- *      and channel phase offsets
- *
- *  @param[in] argc
- *      Number of arguments
- *  @param[in] argv
- *      Arguments
- *
- *  @retval
- *      Success -   0
- *  @retval
- *      Error   -   <0
- */
-static int32_t MmwDemo_CLIMeasureRangeBiasAndRxChanPhaseCfg (int32_t argc, char* argv[])
-{
-    MmwDemo_measureRxChannelBiasCfg_t   cfg;
-
-    /* Sanity Check: Minimum argument check */
-    if (argc != 4)
-    {
-        CLI_write ("Error: Invalid usage of the CLI command\n");
-        return -1;
-    }
-
-    /* Initialize configuration: */
-    memset ((void *)&cfg, 0, sizeof(MmwDemo_measureRxChannelBiasCfg_t));
-
-    /* Populate configuration: */
-    cfg.enabled          = (uint8_t) atoi (argv[1]);
-    cfg.targetDistance   = (float) atof (argv[2]);
-    cfg.searchWinSize   = (float) atof (argv[3]);
-
-    /* Save Configuration to use later */
-    memcpy((void *) &gMmwMCB.cliCommonCfg.measureRxChanCfg, &cfg, sizeof(MmwDemo_measureRxChannelBiasCfg_t));
-
-    return 0;
-}
-
-
-/**
- *  @b Description
- *  @n
  *      This is the CLI Handler for enabling CQ monitor
  *
  *  @param[in] argc
@@ -813,24 +714,6 @@ void MmwDemo_CLIInit (void)
     cliCfg.tableEntry[cnt].helpString     = NULL;
 #endif
     cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLIADCBufCfg;
-    cnt++;
-
-    cliCfg.tableEntry[cnt].cmd            = "compRangeBiasAndRxChanPhase";
-#if 0
-    cliCfg.tableEntry[cnt].helpString     = "<rangeBias> <Re00> <Im00> <Re01> <Im01> <Re02> <Im02> <Re03> <Im03> <Re10> <Im10> <Re11> <Im11> <Re12> <Im12> <Re13> <Im13> ";
-#else
-    cliCfg.tableEntry[cnt].helpString     = NULL;
-#endif
-    cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLICompRangeBiasAndRxChanPhaseCfg;
-    cnt++;
-
-    cliCfg.tableEntry[cnt].cmd            = "measureRangeBiasAndRxChanPhase";
-#if 0
-    cliCfg.tableEntry[cnt].helpString     = "<enabled> <targetDistance> <searchWin>";
-#else
-    cliCfg.tableEntry[cnt].helpString     = NULL;
-#endif
-    cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLIMeasureRangeBiasAndRxChanPhaseCfg;
     cnt++;
 
     cliCfg.tableEntry[cnt].cmd            = "CQRxSatMonitor";
