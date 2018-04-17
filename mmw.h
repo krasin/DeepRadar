@@ -55,7 +55,6 @@
 
 #include <ti/sysbios/knl/Semaphore.h>
 
-#include "post_processing.h"
 #include "data_path.h"
 
 #ifdef __cplusplus

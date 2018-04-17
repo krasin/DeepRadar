@@ -81,7 +81,6 @@ extern uint32_t log2Approx(uint32_t x);
  **************************************************************************/
 
 /* CLI Command Functions */
-static int32_t MmwDemo_CLICfarCfg (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLISensorStart (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLISensorStop (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[]);
@@ -140,50 +139,6 @@ static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[])
     memcpy((void *)&gMmwMCB.cliCfg.guiMonSel, (void *)&guiMonSel, sizeof(MmwDemo_GuiMonSel));
     return 0;
 }
-
-/**
- *  @b Description
- *  @n
- *      This is the CLI Handler for CFAR configuration
- *
- *  @param[in] argc
- *      Number of arguments
- *  @param[in] argv
- *      Arguments
- *
- *  @retval
- *      Success -   0
- *  @retval
- *      Error   -   <0
- */
-static int32_t MmwDemo_CLICfarCfg (int32_t argc, char* argv[])
-{
-    MmwDemo_CfarCfg   cfarCfg;
-
-    /* Sanity Check: Minimum argument check */
-    if (argc != 8)
-    {
-        CLI_write ("Error: Invalid usage of the CLI command\n");
-        return -1;
-    }
-
-    /* Initialize the ADC Output configuration: */
-    memset ((void *)&cfarCfg, 0, sizeof(MmwDemo_CfarCfg));
-
-    /* Populate configuration: */
-    //procDirection           = (uint8_t) atoi (argv[1]);
-    cfarCfg.averageMode     = (uint8_t) atoi (argv[2]);
-    cfarCfg.winLen          = (uint8_t) atoi (argv[3]);
-    cfarCfg.guardLen        = (uint8_t) atoi (argv[4]);
-    cfarCfg.noiseDivShift   = (uint8_t) atoi (argv[5]);
-    cfarCfg.cyclicMode      = (uint8_t) atoi (argv[6]);
-    cfarCfg.thresholdScale  = (uint16_t) atoi (argv[7]);
-
-    /* Save Configuration to use later */
-    memcpy((void *)&gMmwMCB.dataPathObj.cliCfg->cfarCfg, (void *)&cfarCfg, sizeof(MmwDemo_CfarCfg));
-    return 0;
-}
-
 
 /**
  *  @b Description
@@ -618,15 +573,6 @@ void MmwDemo_CLIInit (void)
     cliCfg.tableEntry[cnt].helpString     = NULL;
 #endif
     cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLIGuiMonSel;
-    cnt++;
-
-    cliCfg.tableEntry[cnt].cmd            = "cfarCfg";
-#if 0
-    cliCfg.tableEntry[cnt].helpString     = "<procDirection> <averageMode> <winLen> <guardLen> <noiseDiv> <cyclicMode> <thresholdScale>";
-#else
-    cliCfg.tableEntry[cnt].helpString     = NULL;
-#endif
-    cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLICfarCfg;
     cnt++;
 
     cliCfg.tableEntry[cnt].cmd            = "peakGrouping";

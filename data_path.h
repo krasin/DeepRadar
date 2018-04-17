@@ -60,13 +60,6 @@ extern "C" {
 #define BYTES_PER_SAMP_2D (2*sizeof(int32_t))  /*32 bit real, 32 bit imaginary => 8 bytes */
 #define BYTES_PER_SAMP_DET sizeof(uint16_t) /*pre-detection matrix is 16 bit unsigned =>2 bytes*/
 
-//DETECTION (CFAR-CA) related parameters
-#define MMW_MAX_OBJ_OUT 100
-#define DET_THRESH_MULT 25
-#define DET_THRESH_SHIFT 5 //DET_THRESH_MULT and DET_THRESH_SHIFT together define the CFAR-CA threshold
-#define DET_GUARD_LEN 4 // this is the one sided guard lenght
-#define DET_NOISE_LEN 16 //this is the one sided noise length
-
 #define ONE_Q15 (1 << 15)
 #define ONE_Q19 (1 << 19)
 #define ONE_Q8 (1 << 8)
@@ -129,21 +122,6 @@ extern "C" {
 
 #define MMWDEMO_EDMA_TRANSFER_COMPLETION_CODE_2D_DONE    MMW_EDMA_2D_PONG_CHAIN_CH_ID2
 
-/* CFAR */
-#define MMW_HWA_DMA_TRIGGER_SOURCE_CFAR      4
-#define MMW_HWA_DMA_DEST_CHANNEL_CFAR        4
-#define MMW_HWA_CFAR_INP                    (&gMmwHwaMemBuf[0])
-#define MMW_HWA_CFAR_OUT                    (&gMmwHwaMemBuf[2])
-#define MMW_EDMA_CFAR_INP_CH_ID              EDMA_TPCC0_REQ_FREE_8
-#define MMW_EDMA_CFAR_INP_SHADOW_LINK_CH_ID1 (EDMA_SHADOW_LNK_PARAM_BASE_ID + 12)
-#define MMW_EDMA_CFAR_INP_CHAIN_CH_ID        EDMA_TPCC0_REQ_FREE_9
-#define MMW_EDMA_CFAR_INP_SHADOW_LINK_CH_ID2 (EDMA_SHADOW_LNK_PARAM_BASE_ID + 13)
-#define MMW_EDMA_CFAR_OUT_CH_ID              EDMA_TPCC0_REQ_HWACC_4
-#define MMW_EDMA_CFAR_OUT_SHADOW_LINK_CH_ID1 (EDMA_SHADOW_LNK_PARAM_BASE_ID + 14)
-#define MMW_EDMA_CFAR_OUT_CHAIN_CH_ID        EDMA_TPCC0_REQ_HWACC_4
-
-#define MMWDEMO_EDMA_TRANSFER_COMPLETION_CODE_CFAR_DONE  MMW_EDMA_CFAR_OUT_CHAIN_CH_ID
-
 /* Single range bin 2D FFT */
 #define MMW_HWA_2DFFT_SINGLERBIN_INP              (&gMmwHwaMemBuf[2])
 #define MMW_HWA_2DFFT_SINGLERBIN_OUT              (&gMmwHwaMemBuf[3])
@@ -164,12 +142,8 @@ extern "C" {
 
 #define MMW_HWA_START_POS_PARAMSETS_1D       0
 #define MMW_HWA_START_POS_PARAMSETS_2D      (MMW_HWA_START_POS_PARAMSETS_1D + HWAUTIL_NUM_PARAM_SETS_1D)
-#define MMW_HWA_START_POS_PARAMSETS_CFAR    (MMW_HWA_START_POS_PARAMSETS_2D + HWAUTIL_NUM_PARAM_SETS_CFAR)
-#define MMW_HWA_START_POS_PARAMSETS_ANGLE   (MMW_HWA_START_POS_PARAMSETS_CFAR + HWAUTIL_NUM_PARAM_SETS_CFAR)
 
 #define MMW_HWA_WINDOWRAM_1D_OFFSET         0 //In samples
-
-#define MMW_HWA_MAX_CFAR_DET_OBJ_LIST_SIZE (SOC_XWR14XX_MSS_HWA_MEM_SIZE/MMW_HWA_NUM_MEM_BUFS)/sizeof(cfarDetOutput_t)
 
 /* FFT Window */
 /*! Hanning window */
@@ -191,15 +165,6 @@ extern "C" {
 #define MMW_MAX_ELEV_OBJ_DEBUG 10
 
 #define MMWDEMO_SPEED_OF_LIGHT_IN_METERS_PER_SEC (3.0e8)
-
-/* CFAR tuning parameters */
-#define MMW_HWA_NOISE_AVG_MODE             HWA_NOISE_AVG_MODE_CFAR_CASO
-#define MMW_HWA_CFAR_THRESHOLD_SCALE       0x4b0
-#define MMW_HWA_CFAR_WINDOW_LEN            8
-#define MMW_HWA_CFAR_GUARD_LEN             4
-#define MMW_HWA_CFAR_NOISE_DIVISION_RIGHT_SHIFT 3
-#define MMW_HWA_CFAR_PEAK_GROUPING         HWA_FEATURE_BIT_DISABLE
-
 
 /*! @brief Flag to enable/disable two peak detection in azimuth for same range and velocity */
 #define MMWDEMO_AZIMUTH_TWO_PEAK_DETECTION_ENABLE 1
@@ -252,17 +217,6 @@ typedef enum DataPath_chain2DFftSel_e
       */
     DATA_PATH_CHAIN_COMBINED_LOGMAG
 } DataPath_chain2DFftSel;
-
-/*!
- *  @brief    Detected object parameters filled by HWA CFAR
- *
- */
-typedef volatile struct cfarDetOutput
-{
-    uint32_t   noise;           /*!< Noise energy in CFAR cell */
-    uint32_t   rangeIdx : 12;   /*!< Range index */
-    uint32_t   dopplerIdx : 20; /*!< Doppler index */
-} cfarDetOutput_t;
 
 /**
  * @brief
@@ -347,9 +301,6 @@ typedef struct MmwDemo_DataPathObj_t
     /*! @brief Semaphore handle for 2D EDMA completion. */
     Semaphore_Handle EDMA_2Ddone_semHandle;
 
-    /*! @brief Semaphore handle for CFAR EDMA completion. */
-    Semaphore_Handle EDMA_CFARdone_semHandle;
-
     /*! @brief Handle to hardware accelerator driver. */
     HWA_Handle  hwaHandle;
 
@@ -365,23 +316,11 @@ typedef struct MmwDemo_DataPathObj_t
     /*! @brief Semaphore handle for Frame start indication. */
     Semaphore_Handle frameStart_semHandle;
 
-    /*! @brief Number of CFAR detections by Hardware accelerator for debug purposes. */
-    uint32_t numHwaCfarDetections;
-
-    /*! @brief Number of detected objects. */
-    uint32_t numObjOut;
-
-    /*! @brief output object array */
-    MmwDemo_detectedObj objOut[MMW_MAX_OBJ_OUT];
-
     /*! @brief Pointer to Radar Cube memory in L3 RAM */
     uint32_t *radarCube;
 
     /*! @brief Pointer to range-doppler log magnitude matrix memory in L3 RAM */
     uint16_t *rangeDopplerLogMagMatrix;
-
-    /*! @brief pointer to CFAR detection output in L3 RAM */
-    cfarDetOutput_t *cfarDetectionOut;
 
     /*! @brief Pointer to 2D FFT array in range direction, at doppler index 0,
      * for static azimuth heat map */
@@ -499,7 +438,6 @@ void MmwDemo_dataPathCfgBuffers(MmwDemo_DataPathObj *obj, MmwDemoMemPool_t *pool
 void MmwDemo_dataPathConfigCommon(MmwDemo_DataPathObj *obj);
 void MmwDemo_dcRangeSignatureCompensation(MmwDemo_DataPathObj *obj);
 void MmwDemo_process2D(MmwDemo_DataPathObj *obj);
-void MmwDemo_processCfar(MmwDemo_DataPathObj *obj, uint16_t *numDetectedObjects);
 
 
 void MmwDemo_config1D_HWA(MmwDemo_DataPathObj *obj);

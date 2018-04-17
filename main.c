@@ -86,7 +86,6 @@
 
 #include "config_edma_util.h"
 #include "config_hwa_util.h"
-#include "post_processing.h"
 
 /* Demo Include Files */
 #include "mmw.h"
@@ -1179,7 +1178,6 @@ int32_t MmwDemo_eventCallbackFxn(uint16_t msgId, uint16_t sbId, uint16_t sbLen, 
 void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 {
     MmwDemo_DataPathObj *dataPathObj = &gMmwMCB.dataPathObj;
-    uint16_t numDetectedObjects;
     while(1)
     {
         Semaphore_pend(dataPathObj->frameStart_semHandle, BIOS_WAIT_FOREVER);
@@ -1206,12 +1204,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 
         MmwDemo_process2D(dataPathObj);
         /* 2nd Dimension FFT done! */
-
-        MmwDemo_processCfar(dataPathObj, &numDetectedObjects);
-        /* CFAR done! */
-
-        /* Postprocessing/angle estimation */
-        dataPathObj->numHwaCfarDetections = numDetectedObjects;
 
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);

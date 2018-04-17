@@ -76,7 +76,6 @@
 
 #include "config_edma_util.h"
 #include "config_hwa_util.h"
-#include "post_processing.h"
 
 #include "data_path.h"
 #include "mmw.h"
@@ -88,10 +87,6 @@ void MmwDemo_dataPathTrigger2D(MmwDemo_DataPathObj *obj);
 void MmwDemo_dataPathWait2D(MmwDemo_DataPathObj *obj);
 
 int32_t MmwDemo_config1D_EDMA(MmwDemo_DataPathObj *obj);
-int32_t MmwDemo_configCFAR_EDMA(MmwDemo_DataPathObj *obj);
-void MmwDemo_configCFAR_HWA(MmwDemo_DataPathObj *obj);
-void MmwDemo_dataPathTriggerCFAR(MmwDemo_DataPathObj *obj);
-void MmwDemo_dataPathWaitCFAR(MmwDemo_DataPathObj *obj);
 
 void MmwDemo_EDMA_transferCompletionCallbackFxn(uintptr_t arg,
     uint8_t transferCompletionCode);
@@ -154,7 +149,7 @@ static inline MmwDemo_genWindow(uint32_t *win, uint32_t winIndx, float phi, uint
  *      Depending on the programmed transfer completion codes,
  *      posts the corresponding done/completion semaphore.
  *      Per current design, a single semaphore could have been used as the
- *      1D, 2D and CFAR stages are sequential, this code gives some flexibility
+ *      1D and 2D stages are sequential, this code gives some flexibility
  *      if some design change in future.
  */
 void MmwDemo_EDMA_transferCompletionCallbackFxn(uintptr_t arg,
@@ -170,10 +165,6 @@ void MmwDemo_EDMA_transferCompletionCallbackFxn(uintptr_t arg,
 
         case MMWDEMO_EDMA_TRANSFER_COMPLETION_CODE_2D_DONE:
             Semaphore_post(obj->EDMA_2Ddone_semHandle);
-        break;
-
-        case MMWDEMO_EDMA_TRANSFER_COMPLETION_CODE_CFAR_DONE:
-            Semaphore_post(obj->EDMA_CFARdone_semHandle);
         break;
 
         default:
@@ -497,7 +488,6 @@ void MmwDemo_dataPathConfigCommon(MmwDemo_DataPathObj *obj)
 
     MmwDemo_config1D_EDMA(obj);
     MmwDemo_config2D_EDMA(obj);
-    MmwDemo_configCFAR_EDMA(obj);
 
     /**********************************************/
     /* Disable HWA and reset to known state       */
@@ -647,10 +637,6 @@ void MmwDemo_edmaInit(MmwDemo_DataPathObj *obj)
     Semaphore_Params_init(&semParams);
     semParams.mode = Semaphore_Mode_BINARY;
     obj->EDMA_2Ddone_semHandle = Semaphore_create(0, &semParams, NULL);
-
-    Semaphore_Params_init(&semParams);
-    semParams.mode = Semaphore_Mode_BINARY;
-    obj->EDMA_CFARdone_semHandle = Semaphore_create(0, &semParams, NULL);
 }
 
 /**
@@ -942,14 +928,6 @@ void MmwDemo_dataPathCfgBuffers(MmwDemo_DataPathObj *obj, MmwDemoMemPool_t *pool
         MmwDemo_debugAssert(0);
     }
 
-    obj->cfarDetectionOut = (cfarDetOutput_t *) MmwDemo_memPoolAlloc(pool,
-        MMW_MAX_OBJ_OUT * sizeof(cfarDetOutput_t));
-
-    if (obj->cfarDetectionOut == NULL)
-    {
-        MmwDemo_debugAssert(0);
-    }
-
     if (obj->cliCfg->guiMonSel.rangeAzimuthHeatMap)
     {
         obj->azimuthStaticHeatMap = (cmplx16ImRe_t *) MmwDemo_memPoolAlloc(pool,
@@ -1113,83 +1091,6 @@ int32_t MmwDemo_config1D_EDMA(MmwDemo_DataPathObj *obj)
     {
         goto exit;
     }
-
-exit:
-    return(errorCode);
-}
-
-
-/**
- *  @b Description
- *  @n
- *      Configures all CFAR processing related EDMA configuration.
- *
- *  @param[in] obj Pointer to data path object
- *  @retval EDMA error code, see EDMA API.
- */
-int32_t MmwDemo_configCFAR_EDMA(MmwDemo_DataPathObj *obj)
-{
-    int32_t errorCode = EDMA_NO_ERROR;
-    EDMA_Handle handle = obj->edmaHandle;
-    HWA_SrcDMAConfig dmaConfig;
-
-//program DMA to MOVE DATA FROM L3_DETECTION TO ACCEL, THIS SHOULD BE LINKED TO DMA2ACC
-    errorCode = EDMAutil_configHwaContiguous(handle,
-        MMW_EDMA_CFAR_INP_CH_ID,              //chId,
-        false, //isEventTriggered
-        MMW_EDMA_CFAR_INP_SHADOW_LINK_CH_ID1, //linkChId,
-        MMW_EDMA_CFAR_INP_CHAIN_CH_ID,       //chainChId,
-        (uint32_t*)SOC_translateAddress((uint32_t)obj->rangeDopplerLogMagMatrix,SOC_TranslateAddr_Dir_TO_EDMA,NULL), //*pSrcAddress,
-        (uint32_t*)SOC_translateAddress((uint32_t)MMW_HWA_CFAR_INP,SOC_TranslateAddr_Dir_TO_EDMA,NULL),      //*pDestAddress,
-        obj->numRangeBins * obj->numDopplerBins * sizeof(uint16_t), //numBytes,
-        1, //numBlocks,
-        0, //srcIncrBytes,
-        0, //dstIncrBytes,
-        false,  //isIntermediateChainingEnabled,
-        true,   //isFinalChainingEnabled,
-        false, //isTransferCompletionEnabled;
-        NULL,  //transferCompletionCallbackFxn
-		NULL);
-
-    if (errorCode != EDMA_NO_ERROR)
-    {
-        goto exit;
-    }
-
-    HWA_getDMAconfig(obj->hwaHandle, MMW_HWA_DMA_TRIGGER_SOURCE_CFAR, &dmaConfig);
-
-    errorCode = EDMAutil_configHwaOneHotSignature(handle,
-        MMW_EDMA_CFAR_INP_CHAIN_CH_ID, //chId,
-        false, //isEventTriggered
-        (uint32_t*)SOC_translateAddress(dmaConfig.srcAddr,SOC_TranslateAddr_Dir_TO_EDMA,NULL),  //pSrcAddress
-        (uint32_t*)SOC_translateAddress(dmaConfig.destAddr,SOC_TranslateAddr_Dir_TO_EDMA,NULL), //pDestAddress
-        dmaConfig.aCnt,
-        dmaConfig.bCnt,
-        dmaConfig.cCnt,
-        MMW_EDMA_CFAR_INP_SHADOW_LINK_CH_ID2); //linkChId
-
-    if (errorCode != EDMA_NO_ERROR)
-    {
-        goto exit;
-    }
-
-//another DMA to move data from ACC to L3_OBJECT LIN
-    errorCode = EDMAutil_configHwaContiguous(handle,
-        MMW_EDMA_CFAR_OUT_CH_ID,              //chId,
-        true, //isEventTriggered
-        MMW_EDMA_CFAR_OUT_SHADOW_LINK_CH_ID1, //linkChId,
-        MMW_EDMA_CFAR_OUT_CHAIN_CH_ID,       //chainChId,
-        (uint32_t*)SOC_translateAddress((uint32_t)MMW_HWA_CFAR_OUT,SOC_TranslateAddr_Dir_TO_EDMA,NULL),      //*pSrcAddress,
-        (uint32_t*)SOC_translateAddress((uint32_t)obj->cfarDetectionOut,SOC_TranslateAddr_Dir_TO_EDMA,NULL), //*pDestAddress,
-        MMW_MAX_OBJ_OUT * sizeof(cfarDetOutput_t), //numBytes
-        1,     //numBlocks,
-        0, //srcIncrBytes,
-        0, //dstIncrBytes,
-        false, //isIntermediateChainingEnabled,
-        false, //isFinalChainingEnabled,
-        true, //isTransferCompletionEnabled;
-        MmwDemo_EDMA_transferCompletionCallbackFxn,//transferCompletionCallbackFxn)
-		(uintptr_t)obj);
 
 exit:
     return(errorCode);
@@ -1422,138 +1323,6 @@ void MmwDemo_dataPathWait1D(MmwDemo_DataPathObj *obj)
 /**
  *  @b Description
  *  @n
- *      Configures HWA for CFAR processing.
- *
- *  @param[in] obj  Pointer to data path object
- *
- *  @retval
- *      NONE
- */
-void MmwDemo_configCFAR_HWA(MmwDemo_DataPathObj *obj)
-{
-    int32_t                 errCode;
-    HWA_CommonConfig hwaCommonConfig;
-
-    /* Disable the HWA */
-    errCode = HWA_enable(obj->hwaHandle,0); // set 1 to enable
-    if (errCode != 0)
-    {
-        //System_printf("Error: HWA_enable(1) returned %d\n",errCode);
-        MmwDemo_debugAssert (0);
-        return;
-    }
-
-    /**************************************/
-    /* CFAR PROCESSING                    */
-    /**************************************/
-    HWAutil_configCFAR(obj->hwaHandle,
-        HWAUTIL_NUM_PARAM_SETS_1D + HWAUTIL_NUM_PARAM_SETS_2D,
-        obj->numRangeBins,
-        obj->numDopplerBins,
-        obj->cliCfg->cfarCfg.winLen,
-        obj->cliCfg->cfarCfg.guardLen,
-        obj->cliCfg->cfarCfg.noiseDivShift,
-        obj->cliCfg->peakGroupingCfg.inRangeDirectionEn,
-        obj->cliCfg->cfarCfg.cyclicMode,
-        obj->cliCfg->cfarCfg.averageMode,
-        MMW_HWA_MAX_CFAR_DET_OBJ_LIST_SIZE,
-        MMW_HWA_DMA_TRIGGER_SOURCE_CFAR,
-        MMW_HWA_DMA_DEST_CHANNEL_CFAR,
-        ADDR_TRANSLATE_CPU_TO_HWA(MMW_HWA_CFAR_INP), //hwaMemSourceOffset
-        ADDR_TRANSLATE_CPU_TO_HWA(MMW_HWA_CFAR_OUT)  //hwaMemDestOffset
-    );
-
-
-    /***********************/
-    /* HWA COMMON CONFIG   */
-    /***********************/
-    /* Config Common Registers */
-    hwaCommonConfig.configMask = HWA_COMMONCONFIG_MASK_NUMLOOPS |
-                               HWA_COMMONCONFIG_MASK_PARAMSTARTIDX |
-                               HWA_COMMONCONFIG_MASK_PARAMSTOPIDX |
-                               HWA_COMMONCONFIG_MASK_FFT1DENABLE |
-                               HWA_COMMONCONFIG_MASK_INTERFERENCETHRESHOLD |
-                               HWA_COMMONCONFIG_MASK_CFARTHRESHOLDSCALE;
-
-
-    hwaCommonConfig.numLoops = 1;
-    hwaCommonConfig.paramStartIdx = HWAUTIL_NUM_PARAM_SETS_1D + HWAUTIL_NUM_PARAM_SETS_2D;
-    hwaCommonConfig.paramStopIdx =  HWAUTIL_NUM_PARAM_SETS_1D + HWAUTIL_NUM_PARAM_SETS_2D;
-    hwaCommonConfig.fftConfig.fft1DEnable = HWA_FEATURE_BIT_DISABLE;
-    hwaCommonConfig.fftConfig.interferenceThreshold = 0xFFFFFF;
-    hwaCommonConfig.cfarConfig.cfarThresholdScale = obj->cliCfg->cfarCfg.thresholdScale;
-
-    errCode = HWA_configCommon(obj->hwaHandle,&hwaCommonConfig);
-    if (errCode != 0)
-    {
-        //System_printf("Error: HWA_configCommon returned %d\n",errCode);
-        MmwDemo_debugAssert (0);
-        return;
-    }
-}
-
-/**
- *  @b Description
- *  @n
- *      Trigger CFAR processing.
- *
- *  @param[in] obj  Pointer to data path object
- *
- *  @retval
- *      NONE
- */
-void MmwDemo_dataPathTriggerCFAR(MmwDemo_DataPathObj *obj)
-{
-    int32_t errCode;
-
-    /* Enable the HWA */
-    errCode = HWA_enable(obj->hwaHandle,1); // set 1 to enable
-    if (errCode != 0)
-    {
-        //System_printf("Error: HWA_enable(1) returned %d\n",errCode);
-        MmwDemo_debugAssert (0);
-        return;
-    }
-
-    EDMA_startTransfer(obj->edmaHandle, MMW_EDMA_CFAR_INP_CH_ID, EDMA3_CHANNEL_TYPE_DMA);
-}
-
-/**
- *  @b Description
- *  @n
- *      Waits for CFAR processing to finish. This is a blocking function.
- *
- *  @param[in] obj  Pointer to data path object
- *
- *  @retval
- *      NONE
- */
-void MmwDemo_dataPathWaitCFAR(MmwDemo_DataPathObj *obj)
-{
-    Bool       status;
-
-    /* then wait for the all paramSets done interrupt */
-    status = Semaphore_pend(obj->HWA_done_semHandle, BIOS_WAIT_FOREVER);
-    if (status != TRUE)
-    {
-        //System_printf("Error: Semaphore_pend returned %d\n",status);
-        MmwDemo_debugAssert (0);
-        return;
-    }
-
-    /* wait for EDMA done */
-    status = Semaphore_pend(obj->EDMA_CFARdone_semHandle, BIOS_WAIT_FOREVER);
-    if (status != TRUE)
-    {
-        //System_printf("Error: Semaphore_pend returned %d\n",status);
-        MmwDemo_debugAssert (0);
-        return;
-    }
-}
-
-/**
- *  @b Description
- *  @n
  *    Compensation of DC range antenna signature
  *
  *
@@ -1670,22 +1439,6 @@ void MmwDemo_process2D(MmwDemo_DataPathObj *obj)
 /**
  *  @b Description
  *  @n
- *      CFAR process chain.
- */
-void MmwDemo_processCfar(MmwDemo_DataPathObj *obj, uint16_t *numDetectedObjects)
-{
-        MmwDemo_configCFAR_HWA(obj);
-        MmwDemo_dataPathTriggerCFAR(obj);
-        MmwDemo_dataPathWaitCFAR(obj);
-
-        HWA_readCFARPeakCountReg(obj->hwaHandle,
-            (uint8_t *) numDetectedObjects, sizeof(uint16_t));
-        obj->numHwaCfarDetections = *numDetectedObjects;
-}
-
-/**
- *  @b Description
- *  @n
  *      Power of 2 round up function.
  */
 uint32_t MmwDemo_pow2roundup (uint32_t x)
@@ -1707,6 +1460,5 @@ void MmwDemo_dataPathDeleteSemaphore(MmwDemo_DataPathObj *obj)
 {
     Semaphore_delete(&obj->EDMA_1Ddone_semHandle);
     Semaphore_delete(&obj->EDMA_2Ddone_semHandle);
-    Semaphore_delete(&obj->EDMA_CFARdone_semHandle);
     Semaphore_delete(&obj->HWA_done_semHandle);
 }

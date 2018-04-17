@@ -67,7 +67,6 @@ MMW_DEMO_SOURCES   = main.c 				\
                      mmw_cli.c				\
                      config_hwa_util.c 		\
                      config_edma_util.c 	\
-                     post_processing.c      \
 		     mmwDemo_monitor.c
 
 MMW_DEMO_DEPENDS   = $(addprefix $(PLATFORM_OBJDIR)/, $(MMW_DEMO_SOURCES:.c=.$(R4F_DEP_EXT)))

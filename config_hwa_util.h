@@ -44,7 +44,6 @@
 
 #define HWAUTIL_NUM_PARAM_SETS_1D 4
 #define HWAUTIL_NUM_PARAM_SETS_2D 8
-#define HWAUTIL_NUM_PARAM_SETS_CFAR 1
 #define HWAUTIL_NUM_PARAM_SETS_ANGLE 1
 #define HWAUTIL_NUM_PARAM_SETS_2DDET_SINGLEBIN 1
 
@@ -201,58 +200,6 @@ void HWAutil_configDopplerFFTSingleRangeBin(HWA_Handle handle,
                                 uint16_t hwaMemAzimSource,
                                 uint16_t hwaMemAzimDest);
 
-/** @brief Configures ParameterSet for CFAR detection (The CFAR detection runs along range bins).
- *
- *   @param[in] handle              HWA driver handle
- *
- *   @param[in] paramSetStartIdx    HWA parameter set start index
- *
- *   @param[in] numRangeBins        Number of range bins
- *
- *   @param[in] numDopplerBins      NUmber of Doppler bins
- *
- *   @param[in] winLen              window length in CFAR
- *
- *   @param[in] guardLen            guard length in CFAR
- *
- *   @param[in] noiseDivRightShift  noiseDiv factor expressed as right shift in CFAR
- *
- *   @param[in] peakGrouping        peakGrouping flag in CFAR
- *
- *   @param[in] cyclicMode          cyclic mode in CFAR
- *
- *   @param[in] nAvgMode            noise averaging mode in CFAR
- *
- *   @param[in] detObjectListSize   maximum size of list of detected objects
- *
- *   @param[in] dmaTriggerSource    DMA trigger source channel
- *
- *   @param[in] dmaDestChannel      DMA destination channel
- *
- *   @param[in] hwaSourceBufOffset  HWA memory offset with input data:
- *                                  log magnitude 2nd D FFT matrix
- *
- *   @param[in] hwaDestBufOffset    HWA memory offset with CFAR output results:
- *                                  List of detected objects as array of structures
- *                                  cfarDetOutput_t
- *
- */
-void HWAutil_configCFAR(HWA_Handle handle,
-                             uint32_t  paramSetStartIdx,
-                             uint32_t numRangeBins,
-                             uint32_t numDopplerBins,
-                             uint32_t winLen,
-                             uint32_t guardLen,
-                             uint32_t noiseDivRightShift,
-                             uint8_t peakGrouping,
-                             uint8_t cyclicMode,
-                             uint8_t nAvgMode,
-                             uint16_t detObjectListSize,
-                             uint8_t dmaTriggerSource,
-                             uint8_t dmaDestChannel,
-                             uint16_t hwaSourceBufOffset,
-                             uint16_t hwaDestBufOffset
-                             );
 
 /** @brief Configures ParameterSet for azimuth-FFT processing
  *
