@@ -458,14 +458,6 @@ void MmwDemo_XYZestimation(uint16_t *azimFFTPtr,
     range = objOut[objOutIndx].rangeIdx * obj->rangeResolution;
 #endif
 
-
-    /* Compensate for range bias */
-    range -= obj->cliCommonCfg->compRxChanCfg.rangeBias;
-    if (range < 0)
-    {
-        range = 0;
-    }
-
     if(maxIdx > (numAngleBins/2 -1))
     {
         sMaxIdx = maxIdx - numAngleBins;

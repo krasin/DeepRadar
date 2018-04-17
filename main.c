@@ -689,7 +689,6 @@
 #include "mmw.h"
 #include "data_path.h"
 #include <ti/demo/io_interface/mmw_config.h>
-#include <ti/demo/utils/rx_ch_bias_measure.h>
 #include <ti/demo/utils/mmwDemo_monitor.h>
 
 /* These address offsets are in bytes, when configure address offset in hardware,
@@ -1175,18 +1174,12 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
     uint16_t    channelTxEn = gMmwMCB.cfg.openCfg.chCfg.txChannelEn;
     uint8_t     channel;
     uint8_t     numRxAntennas = 0;
-    uint8_t     rxAntOrder [SYS_COMMON_NUM_RX_CHANNEL];
-    uint8_t     txAntOrder [SYS_COMMON_NUM_TX_ANTENNAS];
-    int32_t     i;
-    int32_t     txIdx, rxIdx;
 
     /* Find number of enabled channels */
     for (channel = 0; channel < SYS_COMMON_NUM_RX_CHANNEL; channel++)
     {
-        rxAntOrder[channel] = 0;
         if(gMmwMCB.cfg.openCfg.chCfg.rxChannelEn & (0x1<<channel))
         {
-            rxAntOrder[numRxAntennas] = channel;
             /* Track the number of receive channels: */
             numRxAntennas++;
         }
@@ -1327,39 +1320,6 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
             /* Sanity Check: Ensure that the number of antennas is within system limits */
             MmwDemo_debugAssert (dataPathObj->numVirtualAntennas > 0);
             MmwDemo_debugAssert (dataPathObj->numVirtualAntennas <= (SYS_COMMON_NUM_TX_ANTENNAS * SYS_COMMON_NUM_RX_CHANNEL));
-
-            /* Copy the Rx channel compensation coefficients from common area to data path structure */
-            if (validProfileHasOneTxPerChirp)
-            {
-                for (i = 0; i < dataPathObj->numTxAntennas; i++)
-                {
-                    txAntOrder[i] = log2Approx(validChirpTxEnBits[i]);
-                }
-                for (txIdx = 0; txIdx < dataPathObj->numTxAntennas; txIdx++)
-                {
-                    for (rxIdx = 0; rxIdx < dataPathObj->numRxAntennas; rxIdx++)
-                    {
-                        dataPathObj->compRxChanCfg.rxChPhaseComp[txIdx*dataPathObj->numRxAntennas + rxIdx] =
-                                dataPathObj->cliCommonCfg->compRxChanCfg.rxChPhaseComp[txAntOrder[txIdx]*SYS_COMMON_NUM_RX_CHANNEL + rxAntOrder[rxIdx]];
-
-                    }
-
-                }
-            }
-            else
-            {
-                cmplx16ImRe_t one;
-                one.imag = 0;
-                one.real = 0x7fff;
-                for (txIdx = 0; txIdx < dataPathObj->numTxAntennas; txIdx++)
-                {
-                    for (rxIdx = 0; rxIdx < dataPathObj->numRxAntennas; rxIdx++)
-                    {
-                        dataPathObj->compRxChanCfg.rxChPhaseComp[txIdx*dataPathObj->numRxAntennas + rxIdx] = one;
-                    }
-
-                }
-            }
 
             /* Get the profile configuration: */
             if (MMWave_getProfileCfg(profileHandle,&profileCfg, &errCode) < 0)

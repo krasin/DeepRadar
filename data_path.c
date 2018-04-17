@@ -73,7 +73,6 @@
 #include <ti/drivers/edma/edma.h>
 #include <ti/drivers/esm/esm.h>
 #include <ti/drivers/soc/soc.h>
-#include <ti/demo/utils/rx_ch_bias_measure.h>
 
 #include "config_edma_util.h"
 #include "config_hwa_util.h"
@@ -1909,92 +1908,6 @@ void MmwDemo_dcRangeSignatureCompensation(MmwDemo_DataPathObj *obj)
      }
 }
 
-/*!*****************************************************************************************************************
- * \brief
- * Function Name       :    MmwDemo_rxChanPhaseBiasCompensation
- *
- * \par
- * <b>Description</b>  : Compensation of rx channel phase bias
- *
- * @param[in]      obj Data path object
- *
- * @param[in]      numObj Number of detected points
- *
- * @param[inout]   azimuthSymbols Symbols of Azimuth antennas
- *
- * @param[inout]   elevationSymbols Symbols of Elevation antennas
- *
- * @return         void
- *
- *******************************************************************************************************************
- */
-void MmwDemo_rxChanPhaseBiasCompensation(MmwDemo_DataPathObj *obj,
-                                         uint32_t numObj,
-                                         cmplx16ImRe_t *azimuthSymbols,
-                                         cmplx16ImRe_t *elevationSymbols)
-{
-    cmplx16ImRe_t *rxChComp = (cmplx16ImRe_t *) obj->compRxChanCfg.rxChPhaseComp;
-    int32_t Re, Im;
-    uint32_t i, j;
-    uint32_t antIndx;
-    uint32_t objIdx;
-    uint32_t numAzimAnt = obj->numVirtualAntAzim;
-    uint32_t numElevAnt = obj->numVirtualAntElev;
-
-
-    for (objIdx = 0; objIdx < numObj; objIdx++)
-    {
-        j = 0;
-        /* Compensation of azimuth antennas */
-        for (antIndx = 0; antIndx < numAzimAnt; antIndx++)
-        {
-            i = objIdx*numAzimAnt + antIndx;
-            Re = (int32_t) azimuthSymbols[i].real * (int32_t) rxChComp[j].real -
-                 (int32_t) azimuthSymbols[i].imag * (int32_t) rxChComp[j].imag;
-
-            Im = (int32_t) azimuthSymbols[i].real * (int32_t) rxChComp[j].imag +
-                 (int32_t) azimuthSymbols[i].imag * (int32_t) rxChComp[j].real;
-            Re = (Re + 0x4000) >> 15;
-            Im = (Im + 0x4000) >> 15;
-            Re = MMWDEMO_SATURATE_HIGH(Re);
-            Re = MMWDEMO_SATURATE_LOW(Re);
-            Im = MMWDEMO_SATURATE_HIGH(Im);
-            Im = MMWDEMO_SATURATE_LOW(Im);
-
-            azimuthSymbols[i].real = (int16_t) Re;
-            azimuthSymbols[i].imag = (int16_t) Im;
-            j++;
-        }
-        /* Compensation of elevation antennas */
-        for (antIndx = 0; antIndx < numElevAnt; antIndx++)
-        {
-            if(elevationSymbols == NULL)
-            {
-                break;
-            }
-            else
-            {
-                i = objIdx*numElevAnt + antIndx;
-                Re = (int32_t) elevationSymbols[i].real * (int32_t) rxChComp[j].real -
-                     (int32_t) elevationSymbols[i].imag * (int32_t) rxChComp[j].imag;
-
-                Im = (int32_t) elevationSymbols[i].real * (int32_t) rxChComp[j].imag +
-                     (int32_t) elevationSymbols[i].imag * (int32_t) rxChComp[j].real;
-                Re = (Re + 0x4000) >> 15;
-                Im = (Im + 0x4000) >> 15;
-                Re = MMWDEMO_SATURATE_HIGH(Re);
-                Re = MMWDEMO_SATURATE_LOW(Re);
-                Im = MMWDEMO_SATURATE_HIGH(Im);
-                Im = MMWDEMO_SATURATE_LOW(Im);
-                elevationSymbols[i].real = (int16_t) Re;
-                elevationSymbols[i].imag = (int16_t) Im;
-                j++;
-            }
-        }
-    }
-}
-
-
 /**
  *  @b Description
  *  @n
@@ -2207,12 +2120,6 @@ void MmwDemo_processAngle(MmwDemo_DataPathObj *obj)
     /* Azimuth heap hep doppler compensation */
     if (obj->cliCfg->guiMonSel.rangeAzimuthHeatMap)
     {
-        /* Rx channel gain/phase offset compensation */
-        MmwDemo_rxChanPhaseBiasCompensation(obj,
-                                            obj->numRangeBins,
-                                            obj->azimuthStaticHeatMap,
-                                            (cmplx16ImRe_t *)NULL);
-    
         /* Doppler compensation for Azimuth heat map */
         MmwDemo_azimHeapMapDopplerCompensation(
                                         obj->azimuthStaticHeatMap,
@@ -2254,13 +2161,6 @@ void MmwDemo_processAngle(MmwDemo_DataPathObj *obj)
     }
     else if (numObjOut > 0)
     {
-
-        /* Rx channel gain/phase offset compensation */
-        MmwDemo_rxChanPhaseBiasCompensation(obj,
-                                            numObjOut,
-                                            (cmplx16ImRe_t *) MMW_HWA_ANGLE_AZIM_INP,
-                                            (cmplx16ImRe_t *) MMW_HWA_ANGLE_ELEV_INP);
-
         /* Doppler Compensation */
         if (obj->numVirtualAntAzim > obj->numRxAntennas)
         {

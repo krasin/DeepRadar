@@ -460,9 +460,6 @@ typedef struct MmwDemo_DataPathObj_t
     /*! @brief data path chain selection */
     DataPath_chain2DFftSel datapathChainSel;
 
-    /*! @brief Rx channel gain/phase offset compensation coefficients */
-    MmwDemo_compRxChannelBiasCfg_t compRxChanCfg;
-
     /*! @brief Rx channel Chirp Quality config & data */
     MmwDemo_dataPathCQ          datapathCQ;
 } MmwDemo_DataPathObj;
