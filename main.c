@@ -828,13 +828,6 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
         packetLen += sizeof(MmwDemo_output_message_tl) + tl[tlvIdx].length;
         tlvIdx++;
     }
-    if (pGuiMonSel->noiseProfile)
-    {
-        tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_NOISE_PROFILE;
-        tl[tlvIdx].length = sizeof(uint16_t) * obj->numRangeBins;
-        packetLen += sizeof(MmwDemo_output_message_tl) + tl[tlvIdx].length;
-        tlvIdx++;
-    }
     if (pGuiMonSel->rangeAzimuthHeatMap)
     {
         tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_AZIMUT_STATIC_HEAT_MAP;
@@ -892,23 +885,6 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
         {
             UART_writePolling (uartHandle,
                     (uint8_t*)&obj->rangeDopplerLogMagMatrix[i*obj->numDopplerBins],
-                    sizeof(uint16_t));
-        }
-        tlvIdx++;
-    }
-
-    /* Send noise profile */
-    if (pGuiMonSel->noiseProfile)
-    {
-        uint32_t maxDopIdx = obj->numDopplerBins/2 -1;
-        UART_writePolling (uartHandle,
-                           (uint8_t*)&tl[tlvIdx],
-                           sizeof(MmwDemo_output_message_tl));
-
-        for(i = 0; i < obj->numRangeBins; i++)
-        {
-            UART_writePolling (uartHandle,
-                    (uint8_t*)&obj->rangeDopplerLogMagMatrix[i*obj->numDopplerBins + maxDopIdx],
                     sizeof(uint16_t));
         }
         tlvIdx++;

@@ -131,10 +131,10 @@ static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[])
     /* Populate configuration: */
     guiMonSel.detectedObjects           = atoi (argv[1]);
     guiMonSel.logMagRange               = atoi (argv[2]);
-    guiMonSel.noiseProfile              = atoi (argv[3]);
+    guiMonSel.noiseProfile              = 0;
     guiMonSel.rangeAzimuthHeatMap       = atoi (argv[4]);
     guiMonSel.rangeDopplerHeatMap       = atoi (argv[5]);
-    guiMonSel.statsInfo                     = 0;
+    guiMonSel.statsInfo                 = 0;
 
     /* Save Configuration to use later */
     memcpy((void *)&gMmwMCB.cliCfg.guiMonSel, (void *)&guiMonSel, sizeof(MmwDemo_GuiMonSel));
