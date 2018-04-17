@@ -65,33 +65,6 @@ extern "C" {
 
 /**
  * @brief
- *  Millimeter Wave Demo statistics
- *
- * @details
- *  The structure is used to hold the statistics information for the
- *  Millimeter Wave demo
- */
-typedef struct MmwDemo_Stats_t
-{
-    /*! @brief   Counter which tracks the number of frame trigger events from BSS */
-    uint64_t     frameTriggerReady;
-    
-    /*! @brief   Counter which tracks the number of failed calibration reports
-     *           The event is triggered by an asynchronous event from the BSS */
-    uint32_t     failedTimingReports;
-
-    /*! @brief   Counter which tracks the number of calibration reports received
-     *           The event is triggered by an asynchronous event from the BSS */
-    uint32_t     calibrationReports;
-
-     /*! @brief   Counter which tracks the number of sensor stop events received
-      *           The event is triggered by an asynchronous event from the BSS */
-    uint32_t     sensorStopped;
-}MmwDemo_Stats;
-
-
-/**
- * @brief
  *  Millimeter Wave Demo MCB
  *
  * @details
@@ -126,9 +99,6 @@ typedef struct MmwDemo_MCB_t
     /*! @brief   Data Path object */
     MmwDemo_DataPathObj         dataPathObj;
 
-    /*! @brief   Demo Stats */
-    MmwDemo_Stats               stats;
-    
     /*! @brief   this structure is used to hold all the relevant information 
      for the mmw demo LVDS stream*/
     /*Unverified code. Conflicts with data path processing and should not be used.*/ 

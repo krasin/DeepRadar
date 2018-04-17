@@ -1434,7 +1434,6 @@ void MmwDemo_measurementResultOutput(MmwDemo_DataPathObj *obj)
 *       number of chirps per frame * sizeof(uint32_t)
 *    8. If rangeDopplerHeatMap flag is set, the log magnitude range-Doppler matrix,
 *       size = number of range bins * number of Doppler bins * sizeof(uint16_t)
-*    9. If statsInfo flag is set, the stats information
 *   @param[in] uartHandle   UART driver handle
 *   @param[in] obj          Pointer data path object MmwDemo_DataPathObj
 */
@@ -1503,13 +1502,6 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
     {
         tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_RANGE_DOPPLER_HEAT_MAP;
         tl[tlvIdx].length = obj->numRangeBins * obj->numDopplerBins * sizeof(uint16_t);
-        packetLen += sizeof(MmwDemo_output_message_tl) + tl[tlvIdx].length;
-        tlvIdx++;
-    }
-    if (pGuiMonSel->statsInfo)
-    {
-        tl[tlvIdx].type = MMWDEMO_OUTPUT_MSG_STATS;
-        tl[tlvIdx].length = sizeof(MmwDemo_output_message_stats);
         packetLen += sizeof(MmwDemo_output_message_tl) + tl[tlvIdx].length;
         tlvIdx++;
     }
@@ -1601,26 +1593,6 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
         UART_writePolling (uartHandle,
                 (uint8_t*)obj->rangeDopplerLogMagMatrix,
                 tl[tlvIdx].length);
-        tlvIdx++;
-    }
-
-    /* Send stats information */
-    if (pGuiMonSel->statsInfo == 1)
-    {
-        MmwDemo_output_message_stats stats;
-        stats.interChirpProcessingMargin = 0; /* Not applicable */
-        stats.interFrameProcessingMargin = (uint32_t) (obj->timingInfo.interFrameProcessingEndMargin/R4F_CLOCK_MHZ); /* In micro seconds */
-        stats.interFrameProcessingTime = (uint32_t) (obj->timingInfo.interFrameProcCycles/R4F_CLOCK_MHZ); /* In micro seconds */
-        stats.transmitOutputTime = (uint32_t) (obj->timingInfo.transmitOutputCycles/R4F_CLOCK_MHZ); /* In micro seconds */
-        stats.activeFrameCPULoad = obj->timingInfo.activeFrameCPULoad;
-        stats.interFrameCPULoad = obj->timingInfo.interFrameCPULoad;
-
-        UART_writePolling (uartHandle,
-                           (uint8_t*)&tl[tlvIdx],
-                           sizeof(MmwDemo_output_message_tl));
-        UART_writePolling (uartHandle,
-                           (uint8_t*)&stats,
-                           tl[tlvIdx].length);
         tlvIdx++;
     }
 
@@ -1930,23 +1902,18 @@ int32_t MmwDemo_eventCallbackFxn(uint16_t msgId, uint16_t sbId, uint16_t sbLen, 
                 }
                 case RL_RF_AE_FRAME_TRIGGER_RDY_SB:
                 {
-                    gMmwMCB.stats.frameTriggerReady++;
                     break;
                 }
                 case RL_RF_AE_MON_TIMING_FAIL_REPORT_SB:
                 {
-                    gMmwMCB.stats.failedTimingReports++;
                     break;
                 }
                 case RL_RF_AE_RUN_TIME_CALIB_REPORT_SB:
                 {
-                    gMmwMCB.stats.calibrationReports++;
                     break;
                 }
                 case RL_RF_AE_FRAME_END_SB:
                 {
-                    gMmwMCB.stats.sensorStopped++;
-
                     /*Received Frame Stop async event from BSS. Post event to sensor management task.*/
                     MmwDemo_notifyBssSensorStop();
                     break;

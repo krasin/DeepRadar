@@ -527,9 +527,6 @@ static void MmwDemo_LVDSStream_HwTriggerFrameDone (CBUFF_SessionHandle sessionHa
 {
     int32_t     errCode;
     
-    /* Increment stats*/
-    gMmwMCB.lvdsStream.hwFrameDoneCount++;
-    
     if(sessionHandle != NULL)
     {
         /* If there is a software session configured, we need to 
@@ -568,9 +565,6 @@ static void MmwDemo_LVDSStream_SwTriggerFrameDone (CBUFF_SessionHandle sessionHa
 {    
     int32_t     errCode;
 
-    /* Increment stats*/
-    gMmwMCB.lvdsStream.swFrameDoneCount++;
-    
     if(sessionHandle != NULL)
     {
         if(CBUFF_deactivateSession (sessionHandle, &errCode) < 0)

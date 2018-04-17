@@ -137,7 +137,7 @@ static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[])
     guiMonSel.noiseProfile              = atoi (argv[3]);
     guiMonSel.rangeAzimuthHeatMap       = atoi (argv[4]);
     guiMonSel.rangeDopplerHeatMap       = atoi (argv[5]);
-    guiMonSel.statsInfo                     = atoi (argv[6]);
+    guiMonSel.statsInfo                     = 0;
 
     /* Save Configuration to use later */
     memcpy((void *)&gMmwMCB.cliCfg.guiMonSel, (void *)&guiMonSel, sizeof(MmwDemo_GuiMonSel));
