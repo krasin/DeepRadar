@@ -374,9 +374,6 @@ typedef struct MmwDemo_DataPathObj_t
     /*! @brief output object array */
     MmwDemo_detectedObj objOut[MMW_MAX_OBJ_OUT];
 
-    /*! @brief noise energy */
-    uint32_t noiseEnergy;
-
     /*! @brief Pointer to Radar Cube memory in L3 RAM */
     uint32_t *radarCube;
 

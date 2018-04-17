@@ -290,28 +290,4 @@ extern void angleEstimationAzimElev(uint16_t* azimFFTAbsPtr,
                                     uint16_t * elevFFTPtr,
                                     MmwDemo_DataPathObj *obj);
 
-
-/*!
- *   @brief     Calculate noise energy (diagnostic only)
- *              This  routine calculates the noise  energy
- *              Assumes a predominantly static scene- and averages
- *              the values in the high velocity bins to estimate noise
- *              energy
- *
- *  @param[in] radarCubedMemPtr    Pointer to 2nd D FFT buffer with complex symbols.
- *                                  The size of buffer is numRangeBins *
- *                                  numDopplerBins * (numVirtualAntAzim + numVirtualAntElev)
- *
- *  @param[in] numDopplerBins      Number of Doppler bins
- *
- *  @param[in] numRangeBins        Number of range bins
- *
- *  @param[in] numVirtualAnt       Number of virtual antennas
- *
- */
-extern uint32_t calcNoiseFloor(uint32_t *radarCubedMemPtr,
-                        uint32_t numDopplerBins,
-                        uint32_t numRangeBins,
-                        uint32_t numVirtualAnt);
-
 #endif

@@ -771,8 +771,6 @@ bool MmwDemo_parseProfileAndChirpConfig(MmwDemo_DataPathObj *dataPathObj)
 *       size = sizeof(objOut_t) * number of detected objects
 *    3. If logMagRange flag is set,  rangeProfile,
 *       size = number of range bins * sizeof(uint16_t)
-*    4. If noiseProfile flag is set,  noiseProfile,
-*       size = number of range bins * sizeof(uint16_t)
 *    7. If rangeAzimuthHeatMap flag is set, the zero Doppler column of the
 *       range cubed matrix, size = number of Rx Azimuth virtual antennas *
 *       number of chirps per frame * sizeof(uint32_t)
@@ -1248,10 +1246,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
         /* Postprocessing/angle estimation */
         dataPathObj->numHwaCfarDetections = numDetectedObjects;
         MmwDemo_processAngle(dataPathObj);
-
-        /* Calculate noise floor. This is for EVM diagnostics only. Assumes a stationary scene */
-        dataPathObj->noiseEnergy = calcNoiseFloor (dataPathObj->radarCube, dataPathObj->numDopplerBins,
-                dataPathObj->numRangeBins, dataPathObj->numVirtualAntennas);
 
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);

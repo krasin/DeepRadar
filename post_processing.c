@@ -650,37 +650,3 @@ void angleEstimationAzimElev(uint16_t *azimFFTAbsPtr,
         }		
     }
 }
-
-/** @fn  uint32_t calcNoiseFloor()
-*   @brief Calculate noise energy (diagnostic only)
-*    This  routine calculates the noise  energy
-*    Assumes a predominantly static scene- and averages
-*    the values in the high velocity bins to estimate noise
-*     energy
-*
-*/
-uint32_t calcNoiseFloor(uint32_t *radarCubedMemPtr,
-                        uint32_t numDopplerBins,
-                        uint32_t numRangeBins,
-                        uint32_t numVirtualAnt)
-{
-    uint32_t sumNoiseEnergy = 0;
-    int16_t * srcPtr;
-    int32_t dopplerIdx, rangeIdx, antIdx;
-
-    for (rangeIdx = 0; rangeIdx < numRangeBins; rangeIdx++)
-    {
-        for (dopplerIdx = numDopplerBins/2-2; dopplerIdx <= numDopplerBins/2-1; dopplerIdx++)
-        {
-            srcPtr = (int16_t*) &radarCubedMemPtr[numVirtualAnt * dopplerIdx + 
-                numVirtualAnt * numDopplerBins * rangeIdx];
-            for (antIdx = 0; antIdx < (2 * numVirtualAnt); antIdx++)
-            {
-                sumNoiseEnergy += (*srcPtr) * (*srcPtr);
-                srcPtr++;
-            }
-        }
-    }
-
-    return(sumNoiseEnergy);
-}
