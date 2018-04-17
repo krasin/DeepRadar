@@ -88,7 +88,6 @@ static int32_t MmwDemo_CLIGuiMonSel (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIPeakGroupingCfg (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLIMultiObjBeamForming (int32_t argc, char* argv[]);
 static int32_t MmwDemo_CLICalibDcRangeSig (int32_t argc, char* argv[]);
-static int32_t MmwDemo_CLIClutterRemoval (int32_t argc, char* argv[]);
 
 /**************************************************************************
  *************************** Extern Definitions ***************************
@@ -334,47 +333,6 @@ static int32_t MmwDemo_CLICalibDcRangeSig (int32_t argc, char* argv[])
         sizeof(MmwDemo_CalibDcRangeSigCfg));
     gMmwMCB.dataPathObj.dcRangeSigCalibCntr = 0;
     gMmwMCB.dataPathObj.log2NumAvgChirps = log2NumAvgChirps;
-
-    return 0;
-}
-
-/**
- *  @b Description
- *  @n
- *      Clutter removal Configuration
- *
- *  @param[in] argc
- *      Number of arguments
- *  @param[in] argv
- *      Arguments
- *
- *  @retval
- *      Success -   0
- *  @retval
- *      Error   -   <0
- */
-static int32_t MmwDemo_CLIClutterRemoval (int32_t argc, char* argv[])
-{
-    MmwDemo_ClutterRemovalCfg cfg;
-
-
-    /* Sanity Check: Minimum argument check */
-    if (argc != 2)
-    {
-        CLI_write ("Error: Invalid usage of the CLI command\n");
-        return -1;
-    }
-
-    /* Initialize configuration for clutter removal */
-    memset ((void *)&cfg, 0, sizeof(MmwDemo_ClutterRemovalCfg));
-
-    /* Populate configuration: */
-    cfg.enabled = (uint16_t) atoi (argv[1]);
-
-
-    /* Save Configuration to use later */
-    memcpy((void *)&gMmwMCB.dataPathObj.cliCfg->clutterRemovalCfg,
-           (void *)&cfg, sizeof(MmwDemo_ClutterRemovalCfg));
 
     return 0;
 }
@@ -696,15 +654,6 @@ void MmwDemo_CLIInit (void)
     cliCfg.tableEntry[cnt].helpString     = NULL;
 #endif
     cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLICalibDcRangeSig;
-    cnt++;
-
-    cliCfg.tableEntry[cnt].cmd            = "clutterRemoval";
-#if 0
-    cliCfg.tableEntry[cnt].helpString     = "<enabled>";
-#else
-    cliCfg.tableEntry[cnt].helpString     = NULL;
-#endif
-    cliCfg.tableEntry[cnt].cmdHandlerFxn  = MmwDemo_CLIClutterRemoval;
     cnt++;
 
     cliCfg.tableEntry[cnt].cmd            = "adcbufCfg";

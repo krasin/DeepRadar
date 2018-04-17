@@ -1263,39 +1263,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
              }
         }
 
-        /* Clutter removal */
-        if (dataPathObj->cliCfg->clutterRemovalCfg.enabled)
-        {
-            int32_t rngIdx, antIdx, dopIdx;
-            cmplx16ImRe_t *fftOut1D = (cmplx16ImRe_t *) dataPathObj->radarCube;
-            cmplx32ImRe_t meanVal;
-
-            for (rngIdx = 0; rngIdx < dataPathObj->numRangeBins; rngIdx++)
-            {
-                for (antIdx = 0; antIdx < dataPathObj->numVirtualAntennas; antIdx++)
-                {
-                    meanVal.real = 0;
-                    meanVal.imag = 0;
-                    for (dopIdx = 0; dopIdx < dataPathObj->numDopplerBins; dopIdx++)
-                    {
-                        meanVal.real += fftOut1D[rngIdx*(dataPathObj->numDopplerBins*dataPathObj->numVirtualAntennas) +
-                                                 antIdx + dopIdx*(dataPathObj->numVirtualAntennas)].real;
-                        meanVal.imag += fftOut1D[rngIdx*(dataPathObj->numDopplerBins*dataPathObj->numVirtualAntennas) +
-                                                 antIdx + dopIdx*(dataPathObj->numVirtualAntennas)].imag;
-                    }
-                    meanVal.real = meanVal.real/dataPathObj->numDopplerBins;
-                    meanVal.imag = meanVal.imag/dataPathObj->numDopplerBins;
-                    for (dopIdx = 0; dopIdx < dataPathObj->numDopplerBins; dopIdx++)
-                    {
-                        fftOut1D[rngIdx*(dataPathObj->numDopplerBins*dataPathObj->numVirtualAntennas) +
-                                 antIdx + dopIdx*(dataPathObj->numVirtualAntennas)].real -= meanVal.real;
-                        fftOut1D[rngIdx*(dataPathObj->numDopplerBins*dataPathObj->numVirtualAntennas) +
-                                 antIdx + dopIdx*(dataPathObj->numVirtualAntennas)].imag -= meanVal.imag;
-                    }
-                }
-            }
-        }
-
         MmwDemo_process2D(dataPathObj);
         /* 2nd Dimension FFT done! */
 
