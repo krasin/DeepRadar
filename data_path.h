@@ -264,35 +264,6 @@ typedef volatile struct cfarDetOutput
     uint32_t   dopplerIdx : 20; /*!< Doppler index */
 } cfarDetOutput_t;
 
-/*!
- *  @brief Timing information
- */
-typedef struct MmwDemo_timingInfo
-{
-    /*! @brief number of processor cycles between frames excluding
-           processing time to transmit output on UART */
-    uint32_t interFrameProcCycles;
-
-     /*! @brief number of processor cycles to transmit detected object information
-           on the output UART port, which is not presently back-grounded. */
-    uint32_t transmitOutputCycles;
-
-    /*! @brief Inter frame processing end time */
-    uint32_t interFrameProcessingEndTime;
-
-    /*! @brief Inter frame processing end margin in number of cycles before
-     * due time to start processing first chirp of the next frame */
-    uint32_t interFrameProcessingEndMargin;
-
-    /*! @brief CPU Load during active frame period - i.e. chirping */
-    uint32_t activeFrameCPULoad;
-
-    /*! @brief CPU Load during inter frame period - i.e. after chirps
-     *  are done and before next frame starts */
-    uint32_t interFrameCPULoad;
-
-} MmwDemo_timingInfo_t;
-
 /**
  * @brief
  *  Millimeter Wave Demo Data Path CQ configuration.
@@ -457,9 +428,6 @@ typedef struct MmwDemo_DataPathObj_t
 
     /*! @brief Q format of the output x/y/z coordinates */
     uint32_t xyzOutputQFormat;
-
-    /*! @brief Timing information */
-    MmwDemo_timingInfo_t timingInfo;
 
 	/*! @brief Data path mode */
 	DataPath_mode    dataPathMode;

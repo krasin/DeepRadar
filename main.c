@@ -1891,22 +1891,17 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 {
     MmwDemo_DataPathObj *dataPathObj = &gMmwMCB.dataPathObj;
     uint16_t numDetectedObjects;
-    uint32_t startTime, transmitOutStartTime;
     uint32_t txOrder[SYS_COMMON_NUM_TX_ANTENNAS] = {0,2,1};
     while(1)
     {
         Semaphore_pend(dataPathObj->frameStart_semHandle, BIOS_WAIT_FOREVER);
 
         Load_update();
-        dataPathObj->timingInfo.interFrameCPULoad=Load_getCPULoad();
 
         MmwDemo_dataPathWait1D(dataPathObj);
         /* 1st Dimension FFT done! */
 
         Load_update();
-        dataPathObj->timingInfo.activeFrameCPULoad=Load_getCPULoad();
-
-        startTime = Pmu_getCount(0);
 
         if(dataPathObj->cliCfg->calibDcRangeSigCfg.enabled)
         {
@@ -1987,8 +1982,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
         dataPathObj->noiseEnergy = calcNoiseFloor (dataPathObj->radarCube, dataPathObj->numDopplerBins,
                 dataPathObj->numRangeBins, dataPathObj->numVirtualAntennas);
 
-        transmitOutStartTime = Pmu_getCount(0);
-
         /* Sending range bias and Rx channel phase offset measurements to MSS and from there to CLI */
          if(dataPathObj->cliCommonCfg->measureRxChanCfg.enabled)
          {
@@ -1997,14 +1990,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
 
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);
-
-        dataPathObj->timingInfo.transmitOutputCycles = Pmu_getCount(0) - transmitOutStartTime;
-
-        /* Processing cycles for 2D, CFAR, Azimuth/Elevation
-           processing excluding sending out data */
-        dataPathObj->timingInfo.interFrameProcessingEndTime = Pmu_getCount(0);
-        dataPathObj->timingInfo.interFrameProcCycles = dataPathObj->timingInfo.interFrameProcessingEndTime - startTime -
-            dataPathObj->timingInfo.transmitOutputCycles;
 
         dataPathObj->interFrameProcToken--;
         if(dataPathObj->datapathStopped == true)
@@ -2035,10 +2020,6 @@ static void MmwDemo_frameStartIntHandler(uintptr_t arg)
 
     /* Increment interrupt counter for debugging purpose */
     dpObj->frameStartIntCounter++;
-
-    /* Note: this is valid after the first frame */
-    dpObj->timingInfo.interFrameProcessingEndMargin =
-            Pmu_getCount(0) - dpObj->timingInfo.interFrameProcessingEndTime;
 
     /* Check if previous chirp processing has completed */
     MmwDemo_debugAssert(dpObj->interFrameProcToken == 0);
