@@ -57,7 +57,6 @@
 
 #include "post_processing.h"
 #include "data_path.h"
-#include "mmw_lvds_stream.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,11 +97,6 @@ typedef struct MmwDemo_MCB_t
 
     /*! @brief   Data Path object */
     MmwDemo_DataPathObj         dataPathObj;
-
-    /*! @brief   this structure is used to hold all the relevant information 
-     for the mmw demo LVDS stream*/
-    /*Unverified code. Conflicts with data path processing and should not be used.*/ 
-    MmwDemo_LVDSStream_MCB_t    lvdsStream;
 
 } MmwDemo_MCB;
 

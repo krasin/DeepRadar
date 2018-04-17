@@ -79,6 +79,7 @@
 #include <ti/control/mmwave/mmwave.h>
 #include <ti/drivers/osal/DebugP.h>
 #include <ti/utils/cli/cli.h>
+#include <ti/utils/hsiheader/hsiheader.h>
 
 /* Demo Include Files */
 #include "mmw.h"

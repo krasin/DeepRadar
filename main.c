@@ -609,9 +609,6 @@
  *      full scale. So currently in the implementation, scaling is enabled for all stages of the FFT
  *      except for the first stage because of Hanning window related scaling by 1/2.
  *
- *    @subsubsection lvds LVDS Streaming
- *      LVDS Streaming is unverified code. LVDS streaming conflicts with data path processing and should not be used.
- *
  *  @section memoryUsage Memory Usage
  *  @subsection memUsageSummary Memory usage summary
  *    The table below shows the usage of various memories available on the device across
@@ -691,7 +688,6 @@
 /* Demo Include Files */
 #include "mmw.h"
 #include "data_path.h"
-#include "mmw_lvds_stream.h"
 #include <ti/demo/io_interface/mmw_config.h>
 #include <ti/demo/utils/rx_ch_bias_measure.h>
 #include <ti/demo/utils/mmwDemo_monitor.h>
@@ -1632,9 +1628,6 @@ int32_t MmwDemo_dataPathStart (void)
 
     dataPathObj->frameStartIntCounter = 0;
     dataPathObj->interFrameProcToken = 0;
-    
-    gMmwMCB.lvdsStream.hwFrameDoneCount = 0;
-    gMmwMCB.lvdsStream.swFrameDoneCount = 0;
 
     /* Initialize the calibration configuration: */
     memset ((void *)&calibrationCfg, 0, sizeof(MMWave_CalibrationCfg));
@@ -1659,45 +1652,6 @@ int32_t MmwDemo_dataPathStart (void)
     }
 
     return errCode;
-}
-
-/**
- *  @b Description
- *  @n
- *      Configures LVDS/CBUFF HW session for transmitting ADC data
- *
- *  @param[in]  dataPathObj
- *      Pointer to datapath object
- *  @retval
- *      Not Applicable.
- */
-/*Unverified code. Conflicts with data path processing and should not be used.*/
-void MmwDemo_configLVDSHwData (MmwDemo_DataPathObj *dataPathObj)
-{
-    int32_t errCode;
-    
-    /* Delete previous CBUFF HW session if one was configured */
-    if(gMmwMCB.lvdsStream.hwSessionHandle != NULL)
-    {
-        MmwDemo_LVDSStreamDeleteHwSession(gMmwMCB.lvdsStream.hwSessionHandle);
-    }
-    
-    /* Configure HW session */    
-    if (MmwDemo_LVDSStreamHwConfig(dataPathObj) < 0)
-    {
-        //System_printf("Failed LVDS stream HW configuration\n");
-        MmwDemo_debugAssert(0);
-        return;
-    }
-    
-    /* If HW LVDS stream is enabled, start the session here so that ADC samples will be 
-    streamed out as soon as the first chirp samples land on ADC*/
-    if(CBUFF_activateSession (gMmwMCB.lvdsStream.hwSessionHandle, &errCode) < 0)
-    {
-        //System_printf("Failed to activate CBUFF session for LVDS stream HW. errCode=%d\n",errCode);
-        MmwDemo_debugAssert(0);
-        return;
-    }
 }
 
 /**
@@ -1744,17 +1698,6 @@ void MmwDemo_dataPathConfig (void)
         /* Configure one-time EDMA and HWA parameters */
         MmwDemo_dataPathConfigCommon(dataPathObj);
 
-        /*Delete all valid LVDS stream sessions*/
-        /*Unverified code. Conflicts with data path processing and should not be used.*/
-        MmwDemo_LVDSStreamDelete();
-
-        /* Configure LVDS transfer of ADC data */
-        /*Unverified code. Conflicts with data path processing and should not be used.*/
-        if(dataPathObj->cliCfg->lvdsStreamCfg.dataFmt != 0)
-        {
-            MmwDemo_configLVDSHwData(dataPathObj);
-        }              
-        
         /* Config HWA for 1D processing and keep it ready for immediate processingh
            as soon as Front End starts generating chirps */
         MmwDemo_config1D_HWA(dataPathObj);
@@ -1938,52 +1881,6 @@ int32_t MmwDemo_eventCallbackFxn(uint16_t msgId, uint16_t sbId, uint16_t sbLen, 
 /**
  *  @b Description
  *  @n
- *      Transmit user data over LVDS interface.
- *
- *  @param[in]  dataPathObj
- *      Pointer to datapath object
- *
- */
-/*Unverified code. Conflicts with data path processing and should not be used.*/
-void MmwDemo_transferLVDSUserData(MmwDemo_DataPathObj *dataPathObj)
-{
-    int32_t errCode;
-    
-    /* Delete previous SW session if it exists. SW session is being
-       reconfigured every frame because number of detected objects
-       may change from frame to frame which implies that the size of
-       the streamed data may change. */        
-    if(gMmwMCB.lvdsStream.swSessionHandle != NULL)
-    {
-        MmwDemo_LVDSStreamDeleteSwSession(gMmwMCB.lvdsStream.swSessionHandle);
-    }
-    
-    /* Configure SW session for this subframe */
-    if (MmwDemo_LVDSStreamSwConfig(dataPathObj) < 0)
-    {
-        //System_printf("Failed LVDS stream SW configuration\n");
-        MmwDemo_debugAssert(0);
-        return;
-    }
-    
-    /* Populate user data header that will be streamed out*/
-    gMmwMCB.lvdsStream.userDataHeader.frameNum  = dataPathObj->frameStartIntCounter;
-    gMmwMCB.lvdsStream.userDataHeader.detObjNum = dataPathObj->numObjOut;
-    gMmwMCB.lvdsStream.userDataHeader.reserved  = 0xABCD;
-    
-    /* If SW LVDS stream is enabled, start the session here. User data will imediatelly
-       start to stream over LVDS.*/
-    if(CBUFF_activateSession (gMmwMCB.lvdsStream.swSessionHandle, &errCode) < 0)
-    {
-        //System_printf("Failed to activate CBUFF session for LVDS stream SW. errCode=%d\n",errCode);
-        MmwDemo_debugAssert(0);
-        return;
-    }
-}
-
-/**
- *  @b Description
- *  @n
  *      The task is used for data path processing and to transmit the
  *      detected objects through the UART output port.
  *
@@ -2098,13 +1995,6 @@ void MmwDemo_dataPathTask(UArg arg0, UArg arg1)
              MmwDemo_measurementResultOutput (dataPathObj);
          }
 
-        /* Send user data over LVDS */
-        /*Unverified code. Conflicts with data path processing and should not be used.*/
-        if(dataPathObj->cliCfg->lvdsStreamCfg.isSwEnabled == 1)
-        {
-            MmwDemo_transferLVDSUserData(dataPathObj);
-        }    
-        
         MmwDemo_transmitProcessedOutput(gMmwMCB.loggingUartHandle,
                                         dataPathObj);
 
@@ -2237,15 +2127,6 @@ void MmwDemo_initTask(UArg arg0, UArg arg1)
         return;
     }
     //System_printf("Debug: UART Instance %p has been opened successfully\n", gMmwMCB.loggingUartHandle);
-
-    /* Initialize LVDS streaming components */
-    /*Unverified code. Conflicts with data path processing and should not be used.*/
-    if ((errCode = MmwDemo_LVDSStreamInit()) < 0 )
-    {
-        //System_printf ("Error: MMWDemoDSS LVDS stream init failed with Error[%d]\n",errCode);
-        MmwDemo_debugAssert (0);
-        return;
-    }
 
     /*****************************************************************************
      * mmWave: Initialization of the high level module
