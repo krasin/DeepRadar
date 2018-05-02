@@ -784,6 +784,10 @@ void MmwDemo_transmitProcessedOutput(UART_Handle uartHandle,
 
     MmwDemo_output_message_tl   tl[MMWDEMO_OUTPUT_MSG_MAX];
 
+    if (obj->frameStartIntCounter > 1) {
+      // Only send the first frame.
+      return;
+    }
     /* Get Gui Monitor configuration */
     pGuiMonSel = &gMmwMCB.cliCfg.guiMonSel;
 
